@@ -25,6 +25,9 @@ class run:
         self.pixel = config.pixelshuffle
         self.convb = config.convb
         self.poseeval = poseevalpckh()
+        self.activate_function = config.activate_function
+        self.hm_lossselect = config.hm_lossselect
+        self.grayimage = config.grayimage
 
 
     def train(self):
@@ -37,17 +40,19 @@ class run:
                         txt_file.write(
                             "pose_{}.pb: model :{}, v3_version:{}, widthscale:{}, {} epochs, {} lr, {} input size,"
                             " {} output size, isTrain={}\n, offset: {}, Gauthreshold: {}, GauSigma: {},Used dataset: {},"
-                            " Duc:{}and{}".
+                            " Duc:{}and{}, activate function: {}, loss : {}, gray or not: {}".
                             format(time_str, self.model[i], config.v3_version, config.v3_width_scale, epoch, lrs,
                                    config.inputSize[i],self.outputSize[i], config.isTrain, config.offset,config.threshold,
-                                   config.sigma,config.dataset, self.pixel,self.convb))
+                                   config.sigma,config.dataset, self.pixel,self.convb,self.activate_function,self.hm_lossselect,
+                                   self.grayimage))
                     else:
                         txt_file.write("pose_{}.pb: model type:{}, {} epochs, {} lr, {} input size, {} outputsize, "
                                        "isTrain={}\n, offset: {}, , Gauthreshold: {}, GauSigma: {}, Used dataset: {}, "
-                                       "Duc:{}and{}".
+                                       "Duc:{}and{}, activate function: {}, loss : {}, gray or not: {}".
                                        format(time_str,self.model[i], epoch, lrs, config.inputSize[i],self.outputSize[i],
                                               config.isTrain, config.offset,config.threshold,config.sigma, config.dataset,
-                                              self.pixel,self.convb))
+                                              self.pixel,self.convb,self.activate_function,self.hm_lossselect,
+                                   self.grayimage))
                     txt_file.close()
                     self.tp.train_fastpose( self.trainornot, self.checkpoint, self.model[i],
                                    self.dataformat, epoch, lrs, time_str, self.outputmodel,config.inputSize[i],self.outputSize[i],
