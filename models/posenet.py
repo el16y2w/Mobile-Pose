@@ -1,7 +1,10 @@
 import tensorflow as tf
 from models.outputlayer import finallayerforoffsetoption
 import config
-from models.Layerprovider import LayerProvider
+if config.activate_function == 'relu':
+    from models.Layerprovider import LayerProvider
+elif config.activate_function == 'swish':
+    from models.Layerprovider_swish import LayerProvider
 
 
 class PoseNet:

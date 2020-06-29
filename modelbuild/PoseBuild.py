@@ -38,8 +38,13 @@ class buildPoseNet(object):
 
             inputImage = model.getInput()
 
-            trainer = Trainer(inputImage, output, intermediate_out, dataTrainProvider, dataValProvider, self.modelDir,
+            if config.offset == False:
+                trainer = Trainer(inputImage, output, intermediate_out, dataTrainProvider, dataValProvider, self.modelDir,
                                      Trainer.posenetLoss_nooffset,inputsize,self.dataformat,self.offsetset,time)
+            else:
+                trainer = Trainer(inputImage, output, intermediate_out, dataTrainProvider, dataValProvider,
+                                  self.modelDir,
+                                  Trainer.posenetLoss, inputsize, self.dataformat, self.offsetset, time)
         else:
             if model_type == "mobilenetv1":
                 model = PoseNet(inputshape,is4Train=is4Train)
@@ -61,9 +66,12 @@ class buildPoseNet(object):
 
             inputImage = model.getInput()
 
-
-            trainer = Trainer(inputImage, output, [output], dataTrainProvider, dataValProvider, self.modelDir,
+            if config.offset == True:
+                trainer = Trainer(inputImage, output, [output], dataTrainProvider, dataValProvider, self.modelDir,
                                       Trainer.posenetLoss,inputsize,self.dataformat,self.offsetset,time)
+            else:
+                trainer = Trainer(inputImage, output, [output], dataTrainProvider, dataValProvider, self.modelDir,
+                                  Trainer.posenetLoss_nooffset, inputsize, self.dataformat, self.offsetset, time)
 
         if not isinstance(checkpointFile, type(None)):
             trainer.restore(checkpointFile)

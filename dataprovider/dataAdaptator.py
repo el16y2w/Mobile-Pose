@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import random
+import config
 
 class DataAdaptator:
 
@@ -32,6 +33,10 @@ class DataAdaptator:
     def get_image(self):
 
         img = self.coco.get_image(self.img_id)
+        if config.grayimage == True:
+            if len(img.shape) == 3:
+                img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+                img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 
         if len(img.shape) == 2:
             img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
@@ -49,11 +54,13 @@ class DataAdaptator:
 
         poses = self.coco.get_poses(self.img_id)
         image = self.coco.get_image(self.img_id)
+        if config.grayimage == True:
+            if len(image.shape) == 3:
+                image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+                image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
 
         if len(image.shape) == 2:
             image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
-
-        #image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
         if not isinstance(self.data_augment, type(None)):
             image, poses = self.data_augment.apply(image, poses)

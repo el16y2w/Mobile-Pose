@@ -31,6 +31,9 @@ v3_width_scale = 1 #[0.35,0.5,0.75,1,1.25]
 
 
 #data prepare
+activate_function = 'relu' #swish
+hm_lossselect = 'l2' #wing, adaptivewing,smooth_l1
+grayimage =  False
 train_annotFile = "img/tree.json"
 train_imageDir = "img/tree"
 test_annotFile = "img/tree.json"

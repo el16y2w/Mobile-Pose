@@ -8,7 +8,10 @@ import numpy as np
 import os
 import tensorflow as tf
 import config
-from datetime import datetime
+from loss import wing_loss
+from loss import adaptivewingLoss
+from loss import smooth_l1_loss
+
 
 
 class Trainer:
@@ -103,7 +106,14 @@ class Trainer:
     def posenetLoss_nooffset(gt, pred, lossName, batchSize):
         predHeat, gtHeat = pred[:, :, :, :len(PoseConfig.NAMES)], gt[:, :, :, :len(PoseConfig.NAMES)]
         heatmapLoss = tf.nn.l2_loss(predHeat - gtHeat, name=lossName + "_heatmapLoss")
-
+        if config.hm_lossselect == 'l2':
+            heatmapLoss = tf.nn.l2_loss(predHeat - gtHeat, name=lossName + "_heatmapLoss")
+        elif config.hm_lossselect == 'wing':
+            heatmapLoss = wing_loss(predHeat, gtHeat)
+        elif config.hm_lossselect == 'adaptivewing':
+            heatmapLoss = adaptivewingLoss(predHeat, gtHeat)
+        elif config.hm_lossselect == 'smooth_l1':
+            heatmapLoss = smooth_l1_loss(None, predHeat, gtHeat)
         for recordId in range(batchSize):
             for jointId in range(len(PoseConfig.NAMES)):
                 print(str(recordId) + "/" + str(batchSize) + " : " + str(jointId))
@@ -120,18 +130,22 @@ class Trainer:
         return heatmapLoss
 
     def posenetLoss(gt, pred, lossName, batchSize):
-
         predHeat, gtHeat = pred[:, :, :, :len(PoseConfig.NAMES)], gt[:, :, :, :len(PoseConfig.NAMES)]
+        if config.hm_lossselect == 'l2':
+            heatmapLoss = tf.nn.l2_loss(predHeat - gtHeat, name=lossName + "_heatmapLoss")
+        elif config.hm_lossselect == 'wing':
+            heatmapLoss = wing_loss(predHeat, gtHeat)
+        elif config.hm_lossselect == 'adaptivewing':
+            heatmapLoss = adaptivewingLoss(predHeat, gtHeat)
+        elif config.hm_lossselect == 'smooth_l1':
+            heatmapLoss = smooth_l1_loss(None, predHeat, gtHeat)
+
         predOffX, gtOffX = pred[:, :, :, len(PoseConfig.NAMES):(2 * len(PoseConfig.NAMES))], gt[:, :, :,
                                                                                             len(PoseConfig.NAMES):(
                                                                                                    2 * len(
-                                                                                                     PoseConfig.NAMES))]
+                                                                                             PoseConfig.NAMES))]
         predOffY, gtOffY = pred[:, :, :, (2 * len(PoseConfig.NAMES)):], gt[:, :, :, (2 * len(PoseConfig.NAMES)):]
-
-        heatmapLoss = tf.nn.l2_loss(predHeat - gtHeat, name=lossName + "_heatmapLoss")
-
         offsetGT, offsetPred = [], []
-
         offsetLoss = 0
 
         for recordId in range(batchSize):
