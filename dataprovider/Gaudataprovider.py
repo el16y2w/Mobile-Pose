@@ -9,18 +9,18 @@ from utils.pose import PoseConfig
 import matplotlib.pyplot as plt
 from utils.drawer import Drawer
 import math
-import config
+from opt import opt
 
 class GauDataProviderAdaptator:
 
-    def __init__(self, annotFile, imageDir, inputSize, outputSize, batchSize, datatype, offset = config.offset):
+    def __init__(self, annotFile, imageDir, inputSize, outputSize, batchSize, datatype, offset = opt.offset):
 
         self.provider = DataProvider.build(annotFile, imageDir, inputSize, batchSize, datatype)
         self.outputSize = outputSize
         self.inputSize = inputSize
         self.batchSize = batchSize
-        self.th = config.threshold
-        self.sigma = config.sigma
+        self.th = opt.gaussian_thres
+        self.sigma = opt.gaussian_sigma
         self.offset =offset
 
     def put_heatmap(self, heatmap, plane_idx, center, sigma):

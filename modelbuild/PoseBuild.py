@@ -1,5 +1,6 @@
 import tensorflow as tf
-import config
+from opt import opt
+import config_cmd as config
 from trainer.trainer import Trainer
 from models.posenet import  PoseNet
 from models.posenetv2 import PoseNetv2
@@ -8,7 +9,6 @@ from models.hrglassnetv3 import HourGlassNet
 from models.efficientnetlite0 import EfficientNetLite0
 from models.efficientnetlite1 import EfficientNetLite1
 from models.shufflenet import Shufflenetget
-from models.channelnet import ChannelNetget
 from models.senet import Senetget
 from dataprovider.Gaudataprovider import GauDataProviderAdaptator
 
@@ -18,13 +18,13 @@ class buildPoseNet(object):
 
     def __init__(self):
         tf.reset_default_graph()
-        self.offsetset = config.offset
-        self.modelDir = config.checkpoinDir
+        self.offsetset = opt.offset
+        self.modelDir = opt.checkpoinsaveDir
         self.dataformat = config.dataformat
-        self.offsetset = config.offset
 
-    def build(self,dataTrainProvider,dataValProvider, time, inputsize, inputshape, checkpointFile=config.checkpoints_file, is4Train=config.isTrain
-              , model_type = config.model):
+
+    def build(self,dataTrainProvider,dataValProvider, time, inputsize, inputshape, checkpointFile, is4Train
+              , model_type ):
 
 
         if model_type == "hourglass":
@@ -38,7 +38,7 @@ class buildPoseNet(object):
 
             inputImage = model.getInput()
 
-            if config.offset == False:
+            if self.offsetset == False:
                 trainer = Trainer(inputImage, output, intermediate_out, dataTrainProvider, dataValProvider, self.modelDir,
                                      Trainer.posenetLoss_nooffset,inputsize,self.dataformat,self.offsetset,time)
             else:
@@ -66,7 +66,7 @@ class buildPoseNet(object):
 
             inputImage = model.getInput()
 
-            if config.offset == True:
+            if self.offsetset == True:
                 trainer = Trainer(inputImage, output, [output], dataTrainProvider, dataValProvider, self.modelDir,
                                       Trainer.posenetLoss,inputsize,self.dataformat,self.offsetset,time)
             else:
@@ -84,9 +84,9 @@ class buildPoseNet(object):
 class train_pose(object):
     def __init__(self):
         self.bP =buildPoseNet()
-        self.offsetset = config.offset
+        self.offsetset = opt.offset
         self.datanumber = config.datanumber
-        self.batch = config.batch
+        self.batch = opt.batch
         self.trainanno = config.dataprovider_trainanno
         self.trainimg =config.dataprovider_trainimg
         self.testanno = config.dataprovider_testanno
@@ -115,19 +115,19 @@ class train_pose(object):
         dataTrainProvider, dataValProvider = self.dataprovider(inputsize,outputsize)
         posenet = self.bP.build(dataTrainProvider, dataValProvider,time_str, inputsize,inputshape,
                                 checkpointFile=checkpoints,is4Train=isTrain, model_type=model)
-        posenet.start(config.fromStep, epochs, lrs, model, time_str)
+        posenet.start(opt.fromStep, epochs, lrs, model, time_str)
 
         if model == "hourglass":
-            self.export(posenet, outputName= config.modelname+model + str(isTrain)+"hourglass_out_3")
+            self.export(posenet, outputName= opt.modelname+model + str(isTrain)+"hourglass_out_3")
 
         else:
             if self.offsetset == True:
-                self.export(posenet, outputFile= config.modelname+model + str(isTrain)+time_str + ".pb")
+                self.export(posenet, outputFile= opt.modelname+model + str(isTrain)+time_str + ".pb")
             else:
                 if model == "efficientnet1":
-                    self.export(posenet, outputFile=config.modelname+model + str(isTrain) + time_str + ".pb")
+                    self.export(posenet, outputFile=opt.modelname+model + str(isTrain) + time_str + ".pb")
                 else:
-                    self.export(posenet, outputFile=config.modelname+model + str(isTrain) + time_str + ".pb",
+                    self.export(posenet, outputFile=opt.modelname+model + str(isTrain) + time_str + ".pb",
                                 outputName="merge_Output/Output_pointwise/BatchNorm/FusedBatchNorm")
 
 

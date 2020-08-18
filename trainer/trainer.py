@@ -7,17 +7,18 @@ from statistics import mean
 import numpy as np
 import os
 import tensorflow as tf
-import config
-from loss import wing_loss
-from loss import adaptivewingLoss
-from loss import smooth_l1_loss
+import config_cmd as config
+from opt import opt
+from utils.loss import wing_loss
+from utils.loss import AdapWingLoss
+from utils.loss import Smooth_l1_loss
 
 
 
 class Trainer:
-    SAVE_EVERY = config.SAVE_EVERY
-    TEST_EVERY = config.TEST_EVERY
-    VIZ_EVERY = config.VIZ_EVERY
+    SAVE_EVERY = opt.SAVE_EVERY
+    TEST_EVERY = opt.TEST_EVERY
+    VIZ_EVERY = opt.VIZ_EVERY
     num = config.datanumber
 
     def __init__(self, inputImage, output, outputStages, dataTrainProvider, dataValProvider, modelDir, lossFunc,
@@ -47,9 +48,18 @@ class Trainer:
         self.updater = []
         self.sess = tf.Session(config=config) if isinstance(sess, type(None)) else sess
         self.learningRate = tf.placeholder(tf.float32, [], name='learningRate')
+
         self.lr = tf.train.exponential_decay(self.learningRate, global_step=self.globalStep,
-                                   decay_steps=10000, decay_rate=0.95, staircase=True)
-        self.opt = tf.train.AdamOptimizer(self.lr, epsilon=1e-8)
+                                   decay_steps=opt.decay_steps, decay_rate=opt.decay_rate, staircase=True)
+        if opt.optimizer == "Adam":
+            self.opt = tf.train.AdamOptimizer(self.lr, epsilon=opt.epsilon)
+        elif opt.optimizer == "Momentum": #use_locking: 为True时锁定更新
+            self.opt = tf.train.MomentumOptimizer(self.lr, momentum = opt.momentum, use_locking=False, name='Momentum', use_nesterov=False)
+        elif opt.optimizer == "Gradient":
+            self.opt = tf.train.GradientDescentOptimizer(self.lr,
+                                                       use_locking=False, name='GrandientDescent')
+        else:
+            raise ValueError("Your optimizer name is wrong")
         for i in range(len(self.dataTrainProvider)):
             update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
             Loss = self._buildLoss(self.heatmapGT, outputStages, dataTrainProvider[i].getBatchSize(), lossFunc,
@@ -99,21 +109,20 @@ class Trainer:
 
         return (tf.reduce_sum(losses) / len(outputStages)) / batchSize
 
-    # @staticmethod
-    # def l2Loss(gt, pred, lossName, batchSize):
-    #     return tf.nn.l2_loss(pred - gt, name=lossName)
 
     def posenetLoss_nooffset(gt, pred, lossName, batchSize):
         predHeat, gtHeat = pred[:, :, :, :len(PoseConfig.NAMES)], gt[:, :, :, :len(PoseConfig.NAMES)]
         heatmapLoss = tf.nn.l2_loss(predHeat - gtHeat, name=lossName + "_heatmapLoss")
-        if config.hm_lossselect == 'l2':
+        if opt.hm_lossselect == 'l2':
             heatmapLoss = tf.nn.l2_loss(predHeat - gtHeat, name=lossName + "_heatmapLoss")
-        elif config.hm_lossselect == 'wing':
+        elif opt.hm_lossselect == 'wing':
             heatmapLoss = wing_loss(predHeat, gtHeat)
-        elif config.hm_lossselect == 'adaptivewing':
-            heatmapLoss = adaptivewingLoss(predHeat, gtHeat)
-        elif config.hm_lossselect == 'smooth_l1':
-            heatmapLoss = smooth_l1_loss(None, predHeat, gtHeat)
+        elif opt.hm_lossselect == 'adaptivewing':
+            heatmapLoss = AdapWingLoss(predHeat, gtHeat)
+        elif opt.hm_lossselect == 'smooth_l1':
+            heatmapLoss = Smooth_l1_loss(None, predHeat, gtHeat)
+        else:
+            raise ValueError("Your optimizer name is wrong")
         for recordId in range(batchSize):
             for jointId in range(len(PoseConfig.NAMES)):
                 print(str(recordId) + "/" + str(batchSize) + " : " + str(jointId))
@@ -131,14 +140,16 @@ class Trainer:
 
     def posenetLoss(gt, pred, lossName, batchSize):
         predHeat, gtHeat = pred[:, :, :, :len(PoseConfig.NAMES)], gt[:, :, :, :len(PoseConfig.NAMES)]
-        if config.hm_lossselect == 'l2':
+        if opt.hm_lossselect == 'l2':
             heatmapLoss = tf.nn.l2_loss(predHeat - gtHeat, name=lossName + "_heatmapLoss")
-        elif config.hm_lossselect == 'wing':
+        elif opt.hm_lossselect == 'wing':
             heatmapLoss = wing_loss(predHeat, gtHeat)
-        elif config.hm_lossselect == 'adaptivewing':
-            heatmapLoss = adaptivewingLoss(predHeat, gtHeat)
-        elif config.hm_lossselect == 'smooth_l1':
-            heatmapLoss = smooth_l1_loss(None, predHeat, gtHeat)
+        elif opt.hm_lossselect == 'adaptivewing':
+            heatmapLoss = AdapWingLoss(predHeat, gtHeat)
+        elif opt.hm_lossselect == 'smooth_l1':
+            heatmapLoss = Smooth_l1_loss(None, predHeat, gtHeat)
+        else:
+            raise ValueError("Your optimizer name is wrong")
 
         predOffX, gtOffX = pred[:, :, :, len(PoseConfig.NAMES):(2 * len(PoseConfig.NAMES))], gt[:, :, :,
                                                                                             len(PoseConfig.NAMES):(
@@ -146,7 +157,6 @@ class Trainer:
                                                                                              PoseConfig.NAMES))]
         predOffY, gtOffY = pred[:, :, :, (2 * len(PoseConfig.NAMES)):], gt[:, :, :, (2 * len(PoseConfig.NAMES)):]
         offsetGT, offsetPred = [], []
-        offsetLoss = 0
 
         for recordId in range(batchSize):
             for jointId in range(len(PoseConfig.NAMES)):
@@ -252,13 +262,13 @@ class Trainer:
         return average_grads
 
     def start(self, fromStep, totalSteps, lr, modeltype, time):
-        result = open(os.path.join(config.modeloutputFile, time + "training_result.csv"), "w")
+        result = open(os.path.join(opt.modeloutputFile, time + "training_result.csv"), "w")
         result.write(
             "model_name,inputsize,outputsize, Gauthreshold, GauSigma, datasetnumber,epochs, learning-rate, train_loss, test_acc\n")
         result.close()
-        result = open(os.path.join(config.modeloutputFile, time + "training_result.csv"), "a+")
+        result = open(os.path.join(opt.modeloutputFile, time + "training_result.csv"), "a+")
         for i in range(fromStep, fromStep + totalSteps + 1):
-            result = open(os.path.join(config.modeloutputFile, time + "training_result.csv"), "a+")
+            result = open(os.path.join(opt.modeloutputFile, time + "training_result.csv"), "a+")
             for j in range(config.datanumber):
                 inputs, heatmaps = self.dataTrainProvider[j].drawn()
                 res = self.sess.run([self.trainLoss[j], self.updater[j], self.summaryMerge],
@@ -268,7 +278,7 @@ class Trainer:
                 print(str(i) + " -- TRAIN" + str(j) + " : " + str(res[0]))
             a = str(res[0])
             result.write("{},{},{},{},{},{},{},{},{}\n".format(modeltype,self.inputSize[0], config.outputSize[0],
-                                                            config.threshold,config.sigma, config.datanumber, i, lr, a))
+                                                            opt.gaussian_thres,opt.gaussian_sigma, config.datanumber, i, lr, a))
             if i % Trainer.SAVE_EVERY == 0:
                 checkpoint_path = os.path.join(self.savePath, 'model')
                 self.saver.save(self.sess, checkpoint_path, global_step=i)
