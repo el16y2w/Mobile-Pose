@@ -6,6 +6,7 @@ from utils.interface import Pose2DInterface
 from statistics import mean
 import numpy as np
 import os
+import time
 import tensorflow as tf
 import config_cmd as config
 from opt import opt
@@ -269,27 +270,68 @@ class Trainer:
             acc.append(mean(value))
         return acc
 
-    def start(self, fromStep, totalSteps, lr, modeltype, time):
-        result = open(os.path.join(opt.modeloutputFile, opt.backbone + time + "training_result.csv"), "w")
+
+    def start(self, fromStep, totalSteps, lr, modeltype, date):
+        total_iterations = 0
+        best_validation_accuracy = 1  # 当前最佳验证集准确率
+        last_improvement = 0  # 上一次有所改进的轮次
+        require_improvement = 5  # 如果在1000轮内没有改进，停止迭代
+        cur_lr = lr
+        j_num = 0
+
+        result = open(os.path.join(exp_dir, opt.backbone + date + "_result.csv"), "w")
+        result_all = open(os.path.join(opt.train_all_result, "training_result.csv"), "w")
         result.write(
-            "model_name,isTrain,offset,traindata,inputsize,outputsize,optimizer,opt_epilon,momentum,heatmaploss, epsilon_loss, loss_w,Gauthreshold, GauSigma, datasetnumber,epochs, learning-rate, train_loss, val_acc,head, "
+            "model_name,isTrain,checkpoints_file,offset,traindata,inputsize,outputsize,optimizer,opt_epilon,momentum,heatmaploss, epsilon_loss, "
+            "loss_w,Gauthreshold, GauSigma, datasetnumber,epochs, learning-rate, training_time,train_loss, val_acc,head, "
             "lShoulder, rShoulder, lElbow, rElbow, lWrist, rWrist, lHip,rHip, lKnee, rKnee, lAnkle, rAnkle\n")
+        result_all.write(
+            "model_name,isTrain,checkpoints_file,offset,traindata,inputsize,outputsize,optimizer,opt_epilon,momentum,heatmaploss, epsilon_loss, "
+            "loss_w,Gauthreshold, GauSigma, datasetnumber,Total_epochs,Stop_epoch, learning-rate, training_time,train_loss, best_validation_accuracy\n")
         result.close()
 
         for i in range(fromStep, fromStep + totalSteps + 1):
-            result = open(os.path.join(opt.modeloutputFile, opt.backbone + time + "training_result.csv"), "a+")
+            start_time = time.time()
+
+            total_iterations += 1
+
+            result = open(os.path.join(exp_dir, opt.backbone + date + "training_result.csv"), "a+")
+            result_all = open(os.path.join(opt.train_all_result, "training_result.csv"), "a+")
             for j in range(config.datanumber):
                 inputs, heatmaps = self.dataTrainProvider[j].drawn()
                 res_train = self.sess.run([self.trainLoss[j], self.updater[j], self.summaryMerge],
                                     feed_dict={self.inputImage: inputs, self.heatmapGT: heatmaps,
                                                self.learningRate: lr})
                 self.fileWriter.add_summary(res_train[2], i)
+            training_time = time.time() - start_time
             train_loss = str(res_train[0])
-            #result.write("{},{},{},{},{},{},{},{},{}\n".format(modeltype,self.inputSize[0], config.outputSize[0],
-                                                            # opt.gaussian_thres,opt.gaussian_sigma, config.datanumber, i, lr, train_loss))
-            if i % Trainer.SAVE_EVERY == 0:
-                checkpoint_path = os.path.join(self.savePath, 'model')
-                self.saver.save(self.sess, checkpoint_path, global_step=i)
+
+            # 每100轮迭代输出状态
+            if (total_iterations % 2 == 0) or (i == totalSteps - 1):
+
+                if Val_acc < best_validation_accuracy:  # 如果当前验证集准确率大于之前的最好准确率
+                    best_validation_accuracy = Val_acc  # 更新最好准确率
+                    last_improvement = total_iterations  # 更新上一次提升的迭代轮次
+                    j_num = 0
+                    checkpoint_path = os.path.join(self.savePath, 'model')
+                    self.saver.save(self.sess, checkpoint_path, global_step=i)
+
+                else:
+                    j_num += 1
+                    if j_num ==2: pass
+                    else:
+                        lr = 0.95 * cur_lr
+                        cur_lr = lr
+
+
+            # 如果在require_improvement轮次内未有提升
+            if total_iterations - last_improvement > require_improvement:
+                result_all.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
+                             format(modeltype,opt.isTrain,opt.checkpoints_file,opt.offset,config.dataformat, self.inputSize[0], config.outputSize[0],opt.optimizer,opt.epsilon,opt.momentum,
+                                    opt.hm_lossselect,opt.epsilon_loss,opt.w,opt.gaussian_thres, opt.gaussian_sigma,
+                                    config.datanumber, opt.epoch,total_iterations, lr, training_time,train_loss, best_validation_accuracy))
+                print("长时间未提升, 停止优化。")
+                break  # 跳出循环
 
             if i % Trainer.TEST_EVERY == 0:
                 inputs, heatmaps = self.dataValProvider[0].drawn()
@@ -320,10 +362,10 @@ class Trainer:
                 summary = tf.Summary(value=[tf.Summary.Value(tag="testset_accuracy", simple_value=mean(distances))])
                 Val_acc = mean(distances)
                 print(" -- Epoch:"+str(i)+"|" + "-- Train Loss :" + train_loss  +"|"+ "-- Val Acc:" + str(Val_acc)[:4])
-                result.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
-                             format(modeltype,opt.isTrain,opt.offset,config.dataformat, self.inputSize[0], config.outputSize[0],opt.optimizer,opt.epsilon,opt.momentum,
+                result.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
+                             format(modeltype,opt.isTrain,opt.checkpoints_file,opt.offset,config.dataformat, self.inputSize[0], config.outputSize[0],opt.optimizer,opt.epsilon,opt.momentum,
                                     opt.hm_lossselect,opt.epsilon_loss,opt.w,opt.gaussian_thres, opt.gaussian_sigma,
-                                    config.datanumber, i, lr, train_loss, Val_acc,kps_acc[0],kps_acc[1],kps_acc[2],kps_acc[3],
+                                    config.datanumber, i, lr, training_time,train_loss, Val_acc,kps_acc[0],kps_acc[1],kps_acc[2],kps_acc[3],
                                     kps_acc[4],kps_acc[5],kps_acc[6],kps_acc[7],kps_acc[8],kps_acc[9],kps_acc[10],kps_acc[11],
                                     kps_acc[12]))
                 self.fileWriter.add_summary(summary, i)
@@ -343,3 +385,4 @@ class Trainer:
                 self.fileWriter.add_summary(tmp, i)
                 tmp = tf.summary.image("heatmap_predicted_" + str(i), currHeatmapViz).eval(session=self.sess)
                 self.fileWriter.add_summary(tmp, i)
+

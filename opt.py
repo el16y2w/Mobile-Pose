@@ -5,9 +5,9 @@ FLAGS = tf.app.flags.FLAGS
 
 "----------------------------- Training options -----------------------------"
 tf.app.flags.DEFINE_integer("batch", 8, "batch size")
-tf.app.flags.DEFINE_integer("epoch", 10, "Current epoch")
+tf.app.flags.DEFINE_integer("epoch", 50, "Current epoch")
 tf.app.flags.DEFINE_integer("fromStep", 0, "Initial epoch")
-tf.app.flags.DEFINE_integer("SAVE_EVERY", 100, "tensorboard save")
+tf.app.flags.DEFINE_integer("SAVE_EVERY", 50, "tensorboard save")
 tf.app.flags.DEFINE_integer("TEST_EVERY", 1, "tensorboard test")
 tf.app.flags.DEFINE_integer("VIZ_EVERY", 300, "tensorboard viz")
 tf.app.flags.DEFINE_integer("Model_folder_name", 0, "Model_folder_name")
@@ -20,7 +20,7 @@ tf.app.flags.DEFINE_string("backbone", 'mobilenetv2', "backbone:mobilenetv1/mobi
 tf.app.flags.DEFINE_string("modeloutputFile", 'Yogapose', "model output dir")
 tf.app.flags.DEFINE_string("checkpoints_file", None, " checkpoints file")
 tf.app.flags.DEFINE_string("checkpoinsaveDir", 'Yogapose', " checkpoints save dir")
-# tf.app.flags.DEFINE_string("modelname", 'Yogapose/', "model name")
+tf.app.flags.DEFINE_string("train_all_result", 'Result/Yogapose', "model name")
 
 
 
