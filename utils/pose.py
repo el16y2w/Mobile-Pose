@@ -102,7 +102,7 @@ class Pose2D:
         j1 = self.get_joints()[mask,:]
         j2 = that.get_joints()[mask, :]
 
-        return np.sqrt(((j1 -j2)**2).sum(1)).mean()
+        return np.sqrt(((j1 -j2)**2).sum(1)).mean(),np.sqrt(((j1 -j2)**2).sum(1))
 
     def get_gravity_center(self):
         return self.joints[self.is_active_mask, :].mean(0)

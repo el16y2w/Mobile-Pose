@@ -7,6 +7,8 @@ from Pose_eval import poseevalpckh
 from opt import opt
 
 time_str = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
+os.makedirs("Result/{}/{}".format(opt.modeloutputFile, opt.Model_folder_name), exist_ok=True)
+exp_dir = os.path.join("Result/{}/{}".format(opt.modeloutputFile, opt.Model_folder_name))
 
 class run:
     def __init__(self):
@@ -22,7 +24,6 @@ class run:
         self.checkpoint = opt.checkpoints_file
         self.model = opt.backbone
         self.dataformat = config.dataformat
-        self.outputmodel = opt.modelname
         self.pixel = config.pixelshuffle
         self.convb = config.convb
         self.poseeval = poseevalpckh()
@@ -32,7 +33,7 @@ class run:
 
 
     def train(self):
-        txt_file = open(os.path.join(opt.modeloutputFile, "res.txt" + time_str), "w+")
+        txt_file = open(os.path.join(exp_dir,  time_str+"_"+opt.backbone+".txt"), "w+")
         if self.model == "mobilenetv3":
             txt_file.write(
                 "pose_{}.pb: model :{}, v3_version:{}, widthscale:{}, {} epochs, {} lr, {} input size,"
@@ -53,7 +54,7 @@ class run:
                        self.grayimage))
         txt_file.close()
         self.tp.train_fastpose( self.trainornot, self.checkpoint, self.model,
-                       self.dataformat, opt.epoch, opt.lr, time_str, self.outputmodel,config.inputSize,self.outputSize,
+                        opt.epoch, opt.lr, time_str, config.inputSize,self.outputSize,
                                 config.inputshape)
 
 

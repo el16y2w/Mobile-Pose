@@ -1,3 +1,4 @@
+import os
 import tensorflow as tf
 from opt import opt
 import config_cmd as config
@@ -12,7 +13,7 @@ from models.shufflenet import Shufflenetget
 from models.senet import Senetget
 from dataprovider.Gaudataprovider import GauDataProviderAdaptator
 
-
+exp_dir = os.path.join("Result/{}/{}".format(opt.modeloutputFile, opt.Model_folder_name))
 
 class buildPoseNet(object):
 
@@ -110,7 +111,7 @@ class train_pose(object):
 
 
     def train_fastpose(self, isTrain, checkpoints,
-                       model, datatype, epochs, lrs, time_str, name, inputsize, outputsize, inputshape):
+                       model, epochs, lrs, time_str, inputsize, outputsize, inputshape):
 
         dataTrainProvider, dataValProvider = self.dataprovider(inputsize,outputsize)
         posenet = self.bP.build(dataTrainProvider, dataValProvider,time_str, inputsize,inputshape,
@@ -118,16 +119,16 @@ class train_pose(object):
         posenet.start(opt.fromStep, epochs, lrs, model, time_str)
 
         if model == "hourglass":
-            self.export(posenet, outputName= opt.modelname+model + str(isTrain)+"hourglass_out_3")
+            self.export(posenet, outputName= exp_dir+"/"+model + str(isTrain)+"hourglass_out_3")
 
         else:
             if self.offsetset == True:
-                self.export(posenet, outputFile= opt.modelname+model + str(isTrain)+time_str + ".pb")
+                self.export(posenet, outputFile= exp_dir+"/" +model + str(isTrain)+time_str + ".pb")
             else:
                 if model == "efficientnet1":
-                    self.export(posenet, outputFile=opt.modelname+model + str(isTrain) + time_str + ".pb")
+                    self.export(posenet, outputFile=exp_dir+"/"+model + str(isTrain) + time_str + ".pb")
                 else:
-                    self.export(posenet, outputFile=opt.modelname+model + str(isTrain) + time_str + ".pb",
+                    self.export(posenet, outputFile=exp_dir+model + str(isTrain) + time_str + ".pb",
                                 outputName="merge_Output/Output_pointwise/BatchNorm/FusedBatchNorm")
 
 

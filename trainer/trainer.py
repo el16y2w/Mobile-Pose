@@ -12,7 +12,7 @@ from opt import opt
 from utils.loss import wing_loss
 from utils.loss import AdapWingLoss
 from utils.loss import Smooth_l1_loss
-
+exp_dir = os.path.join("Result/{}/{}".format(opt.modeloutputFile, opt.Model_folder_name))
 
 
 class Trainer:
@@ -78,20 +78,20 @@ class Trainer:
 
         self.saver = tf.train.Saver(max_to_keep=10)
         for i in range(len(self.dataformat)):
-            self.savePath = os.path.join(modelDir, "checkpoints" + self.time)
+            self.savePath = os.path.join(exp_dir, opt.backbone +"checkpoints" + self.time)
 
             if datatpye[i] == 'yoga':
                 tf.summary.scalar("trainLoss", self.trainLoss[i])
 
-                self.fileWriter = tf.summary.FileWriter(os.path.join(modelDir, "logs_yoga"+ self.time), self.sess.graph)
+                self.fileWriter = tf.summary.FileWriter(os.path.join(exp_dir, opt.backbone+"logs_yoga"+ self.time), self.sess.graph)
             if datatpye[i] == 'coco':
                 #self.savePath = os.path.join(modelDir, "checkpoints_coco" + self.time)
                 tf.summary.scalar("trainLoss", self.trainLoss[i])
 
                 self.fileWriter = tf.summary.FileWriter(
-                    os.path.join(modelDir, "logs_coco" + self.time), self.sess.graph)
+                    os.path.join(exp_dir, opt.backbone +"logs_coco" + self.time), self.sess.graph)
         self.fileWriter = tf.summary.FileWriter(
-            os.path.join(modelDir, "logs_all" + self.time), self.sess.graph)
+            os.path.join(exp_dir, opt.backbone +"logs_all" + self.time), self.sess.graph)
         self.summaryMerge = tf.summary.merge_all()
 
     def restore(self, checkpointPath):
@@ -112,7 +112,6 @@ class Trainer:
 
     def posenetLoss_nooffset(gt, pred, lossName, batchSize):
         predHeat, gtHeat = pred[:, :, :, :len(PoseConfig.NAMES)], gt[:, :, :, :len(PoseConfig.NAMES)]
-        heatmapLoss = tf.nn.l2_loss(predHeat - gtHeat, name=lossName + "_heatmapLoss")
         if opt.hm_lossselect == 'l2':
             heatmapLoss = tf.nn.l2_loss(predHeat - gtHeat, name=lossName + "_heatmapLoss")
         elif opt.hm_lossselect == 'wing':
@@ -261,24 +260,33 @@ class Trainer:
             average_grads.append(grad_and_var)
         return average_grads
 
+    def cal_kps_acc(self,kps_acc):
+        value = []
+        acc = []
+        for i in range(len(kps_acc[0])):
+            for item in kps_acc:
+                value.append(item[i])
+            acc.append(mean(value))
+        return acc
+
     def start(self, fromStep, totalSteps, lr, modeltype, time):
-        result = open(os.path.join(opt.modeloutputFile, time + "training_result.csv"), "w")
+        result = open(os.path.join(opt.modeloutputFile, opt.backbone + time + "training_result.csv"), "w")
         result.write(
-            "model_name,inputsize,outputsize, Gauthreshold, GauSigma, datasetnumber,epochs, learning-rate, train_loss, test_acc\n")
+            "model_name,isTrain,offset,traindata,inputsize,outputsize,optimizer,opt_epilon,momentum,heatmaploss, epsilon_loss, loss_w,Gauthreshold, GauSigma, datasetnumber,epochs, learning-rate, train_loss, val_acc,head, "
+            "lShoulder, rShoulder, lElbow, rElbow, lWrist, rWrist, lHip,rHip, lKnee, rKnee, lAnkle, rAnkle\n")
         result.close()
-        result = open(os.path.join(opt.modeloutputFile, time + "training_result.csv"), "a+")
+
         for i in range(fromStep, fromStep + totalSteps + 1):
-            result = open(os.path.join(opt.modeloutputFile, time + "training_result.csv"), "a+")
+            result = open(os.path.join(opt.modeloutputFile, opt.backbone + time + "training_result.csv"), "a+")
             for j in range(config.datanumber):
                 inputs, heatmaps = self.dataTrainProvider[j].drawn()
-                res = self.sess.run([self.trainLoss[j], self.updater[j], self.summaryMerge],
+                res_train = self.sess.run([self.trainLoss[j], self.updater[j], self.summaryMerge],
                                     feed_dict={self.inputImage: inputs, self.heatmapGT: heatmaps,
                                                self.learningRate: lr})
-                self.fileWriter.add_summary(res[2], i)
-                print(str(i) + " -- TRAIN" + str(j) + " : " + str(res[0]))
-            a = str(res[0])
-            result.write("{},{},{},{},{},{},{},{},{}\n".format(modeltype,self.inputSize[0], config.outputSize[0],
-                                                            opt.gaussian_thres,opt.gaussian_sigma, config.datanumber, i, lr, a))
+                self.fileWriter.add_summary(res_train[2], i)
+            train_loss = str(res_train[0])
+            #result.write("{},{},{},{},{},{},{},{},{}\n".format(modeltype,self.inputSize[0], config.outputSize[0],
+                                                            # opt.gaussian_thres,opt.gaussian_sigma, config.datanumber, i, lr, train_loss))
             if i % Trainer.SAVE_EVERY == 0:
                 checkpoint_path = os.path.join(self.savePath, 'model')
                 self.saver.save(self.sess, checkpoint_path, global_step=i)
@@ -286,16 +294,17 @@ class Trainer:
             if i % Trainer.TEST_EVERY == 0:
                 inputs, heatmaps = self.dataValProvider[0].drawn()
 
-                res = self.sess.run([self.output, self.summaryMerge],
+                res_val = self.sess.run([self.output, self.summaryMerge],
                                     feed_dict={self.inputImage: inputs, self.heatmapGT: heatmaps, self.learningRate: 0})
-
+                Val_Loss = str(res_val[0][0][0][0][:13])
                 fullscreen_bbox = BBox(0, 1, 0, 1)
 
                 distances = []
+                distances_kps_acc = []
                 for batch_id in range(inputs.shape[0]):
                     pose_gt, _ = Pose2DInterface.our_approach_postprocessing(heatmaps[batch_id, :, :, :],
                                                                              fullscreen_bbox, self.inputSize)
-                    pose_pred, _ = Pose2DInterface.our_approach_postprocessing(res[0][batch_id, :, :, :],
+                    pose_pred, _ = Pose2DInterface.our_approach_postprocessing(res_val[0][batch_id, :, :, :],
                                                                                fullscreen_bbox, self.inputSize)
 
                     # pose_pred
@@ -304,18 +313,25 @@ class Trainer:
                     tmp = pose_pred.get_joints()
                     tmp[~pose_pred.get_active_joints(), :] = 0.5
                     pose_pred = Pose2D(tmp)
-
-                    distances.append(pose_gt.distance_to(pose_pred))
-
+                    distances_all,distances_kps = pose_gt.distance_to(pose_pred)
+                    distances.append(distances_all)
+                    distances_kps_acc.append(distances_kps)
+                kps_acc = self.cal_kps_acc(distances_kps_acc)
                 summary = tf.Summary(value=[tf.Summary.Value(tag="testset_accuracy", simple_value=mean(distances))])
-
+                Val_acc = mean(distances)
+                print(" -- Epoch:"+str(i)+"|" + "-- Train Loss :" + train_loss  +"|"+ "-- Val Acc:" + str(Val_acc)[:4])
+                result.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
+                             format(modeltype,opt.isTrain,opt.offset,config.dataformat, self.inputSize[0], config.outputSize[0],opt.optimizer,opt.epsilon,opt.momentum,
+                                    opt.hm_lossselect,opt.epsilon_loss,opt.w,opt.gaussian_thres, opt.gaussian_sigma,
+                                    config.datanumber, i, lr, train_loss, Val_acc,kps_acc[0],kps_acc[1],kps_acc[2],kps_acc[3],
+                                    kps_acc[4],kps_acc[5],kps_acc[6],kps_acc[7],kps_acc[8],kps_acc[9],kps_acc[10],kps_acc[11],
+                                    kps_acc[12]))
                 self.fileWriter.add_summary(summary, i)
 
             if i % Trainer.VIZ_EVERY == 0:
                 inputs, heatmaps = self.dataValProvider[0].drawn()
                 res = self.sess.run([self.output, self.summaryMerge],
                                     feed_dict={self.inputImage: inputs, self.heatmapGT: heatmaps, self.learningRate: 0})
-
                 currHeatmaps = res[0][0, :, :, :]
                 currImage = self._imageFeatureToImage(inputs[0, :, :, :])
                 currHeatmapViz = self._heatmapVisualisation(currHeatmaps)
