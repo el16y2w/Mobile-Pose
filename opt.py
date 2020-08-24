@@ -5,7 +5,7 @@ FLAGS = tf.app.flags.FLAGS
 
 "----------------------------- Training options -----------------------------"
 tf.app.flags.DEFINE_integer("batch", 8, "batch size")
-tf.app.flags.DEFINE_integer("epoch", 2000, "Current epoch")
+tf.app.flags.DEFINE_integer("epoch", 5000, "Current epoch")
 tf.app.flags.DEFINE_integer("fromStep", 0, "Initial epoch")
 tf.app.flags.DEFINE_integer("SAVE_EVERY", 10, "tensorboard save")
 tf.app.flags.DEFINE_integer("TEST_EVERY", 1, "tensorboard test")
@@ -36,7 +36,7 @@ tf.app.flags.DEFINE_boolean('grayimage', False, 'image type')
 
 "----------------------------- Hyperparameter options -----------------------------"
 #lr
-tf.app.flags.DEFINE_string("lr_type", "exponential_decay","exponential_decay|polynomial_decay|natural_exp_decay|cosine_decay_restarts")
+tf.app.flags.DEFINE_string("lr_type", "polynomial_decay","exponential_decay|polynomial_decay|natural_exp_decay|inverse_time_decay")
 tf.app.flags.DEFINE_float("lr", 0.001, "learning rate")
 tf.app.flags.DEFINE_float("decay_rate", 0.95, "learning rate decay rate")
 tf.app.flags.DEFINE_integer("decay_steps", 1000, "learning rate decay steps")
