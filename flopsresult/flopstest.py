@@ -1,12 +1,12 @@
 import tensorflow as tf
-from models.posenet import  PoseNet
-from models.posenetv2 import PoseNetv2
-from models.posenetv3 import PoseNetv3
-from models.hrglassnetv3 import HourGlassNet
-from models.efficientnetlite0 import EfficientNetLite0
-from models.efficientnetlite1 import EfficientNetLite1
-from models.shufflenet import Shufflenetget
-from models.senet import Senetget
+from src.models.posenet import  PoseNet
+from src.models.posenetv2 import PoseNetv2
+from src.models.posenetv3 import PoseNetv3
+from src.models.hrglassnetv3 import HourGlassNet
+from src.models.efficientnetlite0 import EfficientNetLite0
+from src.models.efficientnetlite1 import EfficientNetLite1
+from src.models.shufflenet import Shufflenetget
+from src.models.senet import Senetget
 import os
 import time
 import config

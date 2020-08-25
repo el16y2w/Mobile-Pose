@@ -5,7 +5,7 @@ FLAGS = tf.app.flags.FLAGS
 
 "----------------------------- Training options -----------------------------"
 tf.app.flags.DEFINE_integer("batch", 8, "batch size")
-tf.app.flags.DEFINE_integer("epoch", 5000, "Current epoch")
+tf.app.flags.DEFINE_integer("epoch", 10000, "Current epoch")
 tf.app.flags.DEFINE_integer("fromStep", 0, "Initial epoch")
 tf.app.flags.DEFINE_integer("SAVE_EVERY", 10, "tensorboard save")
 tf.app.flags.DEFINE_integer("TEST_EVERY", 1, "tensorboard test")
@@ -36,7 +36,7 @@ tf.app.flags.DEFINE_boolean('grayimage', False, 'image type')
 
 "----------------------------- Hyperparameter options -----------------------------"
 #lr
-tf.app.flags.DEFINE_string("lr_type", "polynomial_decay","exponential_decay|polynomial_decay|natural_exp_decay|inverse_time_decay")
+tf.app.flags.DEFINE_string("lr_type", "natural_exp_decay","exponential_decay|polynomial_decay|natural_exp_decay|inverse_time_decay")
 tf.app.flags.DEFINE_float("lr", 0.001, "learning rate")
 tf.app.flags.DEFINE_float("decay_rate", 0.95, "learning rate decay rate")
 tf.app.flags.DEFINE_integer("decay_steps", 1000, "learning rate decay steps")
@@ -60,6 +60,9 @@ tf.app.flags.DEFINE_integer("w", 2, "wing_loss(10)/AdapWingLoss(14)")
 tf.app.flags.DEFINE_string("hm_lossselect", 'l2', "l2/wing/adaptivewing/smooth_l1")
 
 #EARLY STOPPING
+tf.app.flags.DEFINE_integer("j_min", 5, "if j_num>j_min,begin to decay lr")
+tf.app.flags.DEFINE_integer("j_max", 10, "if j_num>j_max,stop training")
+tf.app.flags.DEFINE_integer("test_epoch", 50, "每50轮迭代输出状态test")
 tf.app.flags.DEFINE_integer("require_improvement",300, "如果在#轮内没有改进，停止迭代")
 
 

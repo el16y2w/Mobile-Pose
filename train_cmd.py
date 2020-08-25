@@ -2,7 +2,7 @@ import tensorflow as tf
 import config_cmd as config
 import os
 import time
-from modelbuild.PoseBuild import train_pose
+from src.modelbuild.PoseBuild import train_pose
 from opt import opt
 
 time_str = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
