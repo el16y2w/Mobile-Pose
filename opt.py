@@ -13,15 +13,16 @@ tf.app.flags.DEFINE_integer("VIZ_EVERY", 10, "tensorboard viz")
 
 tf.app.flags.DEFINE_string("Model_folder_name", 'A_0', "Model_folder_name")
 
+tf.app.flags.DEFINE_boolean("Early_stopping",False,"early stop or not")
 tf.app.flags.DEFINE_boolean('isTrain', True, 'trainable or not')
 tf.app.flags.DEFINE_boolean('offset', True, 'offset')
 
 tf.app.flags.DEFINE_string("backbone", 'mobilenetv2', "backbone:mobilenetv1/mobilenetv2"
                                                       "/mobilenetv3/hourglass/efficientnet")
-tf.app.flags.DEFINE_string("modeloutputFile", 'Yogapose_initiaizer', "model output dir")
+tf.app.flags.DEFINE_string("modeloutputFile", 'trash', "model output dir")
 tf.app.flags.DEFINE_string("checkpoints_file", None, " checkpoints file")
-tf.app.flags.DEFINE_string("checkpoinsaveDir", 'Yogapose_initiaizer', " checkpoints save dir")
-tf.app.flags.DEFINE_string("train_all_result", 'Result/Yogapose_initiaizer', "model name")
+tf.app.flags.DEFINE_string("checkpoinsaveDir", 'trash', " checkpoints save dir")
+tf.app.flags.DEFINE_string("train_all_result", 'Result/trash', "model name")
 
 
 
@@ -82,7 +83,6 @@ tf.app.flags.DEFINE_string("testmodel", "mobilnetv2False2020-05-11-12-17-45.pb",
 tf.app.flags.DEFINE_string("input_node_name", "Image:0", "input_node_name")
 tf.app.flags.DEFINE_string("output_node_name", "Output:0", "output_node_name")
 tf.app.flags.DEFINE_integer("modelinputsize", 224, "Input image")
-
 
 opt = FLAGS
 

@@ -8,6 +8,7 @@ json_dir = 'img/tree.json'
 #select data
 dataformat = ['yoga']
 datanumber = 1 #multiple
+dataset_comment = "single_yoga2_train"
 
 #model type :
 # mobilenetv1: inputsize(160,160), ouput size (10,10)
