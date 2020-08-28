@@ -294,7 +294,7 @@ class Trainer:
             result_all.write(
                 "Index,Backbone,isTrain,checkpoints_file,offset,traindata,inputsize,outputsize,optimizer,opt_epilon,momentum,heatmaploss, epsilon_loss, "
                 "loss_w,Gauthreshold, GauSigma, datasetnumber,Batch,Total_epochs,Stop_epoch, learning_type,learning-rate,decay_rate,require_improvement, "
-                "j_min,j_max,test_epoch,training_time,train_loss, best_validation_accuracy\n")
+                "j_min,j_max,test_epoch,training_time,train_loss, best_validation_accuracy, Dataset\n")
             result_all.close()
 
         for i in range(fromStep, fromStep + totalSteps + 1):
@@ -313,49 +313,58 @@ class Trainer:
             training_time = time.time() - start_time
             train_loss = str(res_train[0])
 
+            if opt.Early_stopping:
             # 每100轮迭代输出状态
-            if (total_iterations % opt.test_epoch == 0) or (i == totalSteps - 1):
+                if (total_iterations % opt.test_epoch == 0) or (i == totalSteps - 1):
 
-                if Val_acc < best_validation_accuracy:  # 如果当前验证集准确率大于之前的最好准确率
-                    best_validation_accuracy = Val_acc  # 更新最好准确率
-                    last_improvement = total_iterations  # 更新上一次提升的迭代轮次
-                    j_num = 0
+                    if Val_acc < best_validation_accuracy:  # 如果当前验证集准确率大于之前的最好准确率
+                        best_validation_accuracy = Val_acc  # 更新最好准确率
+                        last_improvement = total_iterations  # 更新上一次提升的迭代轮次
+                        j_num = 0
+                        checkpoint_path = os.path.join(self.savePath, 'model')
+                        self.saver.save(self.sess, checkpoint_path, global_step=i)
+
+                    else:
+                        j_num += 1
+                        if j_num <opt.j_min : pass
+                        else:
+                            if opt.lr_type == "exponential_decay":
+                                lr = cur_lr * opt.decay_rate
+                            elif opt.lr_type == "polynomial_decay":
+                                global_step = min(i, 1000)
+                                lr = (cur_lr - 0.00001) * (1 - global_step / 1000) + 0.00001
+                                '''
+                                global_step = min(global_step, decay_steps)
+                                decayed_learning_rate = (learning_rate - end_learning_rate) *
+                                                        (1 - global_step / decay_steps) ^ (power) +
+                                                         end_learning_rate
+                                '''
+                            # elif opt.lr_type == "natural_exp_decay":
+                            #     lr = cur_lr * tf.math.exp(-opt.decay_rate * i)
+                            elif opt.lr_type == "inverse_time_decay":
+                                lr = cur_lr / (1 + opt.decay_rate * i / 1000)
+                            else:
+                                raise ValueError("Your lr_type name is wrong")
+                            cur_lr = lr
+                # 如果在require_improvement轮次内未有提升
+                if total_iterations - last_improvement > require_improvement or j_num > opt.j_max:
+                    result_all.write(
+                        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
+                        format(opt.Model_folder_name, modeltype, opt.isTrain, opt.checkpoints_file, opt.offset,
+                               str(config.dataformat), self.inputSize[0], config.outputSize[0], opt.optimizer, opt.epsilon,
+                               opt.momentum,
+                               opt.hm_lossselect, opt.epsilon_loss, opt.w, opt.gaussian_thres, opt.gaussian_sigma,
+                               config.datanumber, opt.batch, opt.epoch, total_iterations, opt.lr_type, lr, opt.decay_rate,
+                               opt.require_improvement,
+                               opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss, best_validation_accuracy,
+                               config.dataset_comment))
+                    print("Stop optimization")
+                    break  # 跳出循环
+
+            else:
+                if i % Trainer.SAVE_EVERY == 0:
                     checkpoint_path = os.path.join(self.savePath, 'model')
                     self.saver.save(self.sess, checkpoint_path, global_step=i)
-
-                else:
-                    j_num += 1
-                    if j_num <opt.j_min : pass
-                    else:
-                        if opt.lr_type == "exponential_decay":
-                            lr = cur_lr * opt.decay_rate
-                        elif opt.lr_type == "polynomial_decay":
-                            global_step = min(i, 1000)
-                            lr = (cur_lr - 0.00001) * (1 - global_step / 1000) + 0.00001
-                            '''
-                            global_step = min(global_step, decay_steps)
-                            decayed_learning_rate = (learning_rate - end_learning_rate) *
-                                                    (1 - global_step / decay_steps) ^ (power) +
-                                                     end_learning_rate
-                            '''
-                        # elif opt.lr_type == "natural_exp_decay":
-                        #     lr = cur_lr * tf.math.exp(-opt.decay_rate * i)
-                        elif opt.lr_type == "inverse_time_decay":
-                            lr = cur_lr / (1 + opt.decay_rate * i / 1000)
-                        else:
-                            raise ValueError("Your lr_type name is wrong")
-                        cur_lr = lr
-
-
-            # 如果在require_improvement轮次内未有提升
-            if total_iterations - last_improvement > require_improvement or j_num > opt.j_max:
-                result_all.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
-                             format(opt.Model_folder_name,modeltype,opt.isTrain,opt.checkpoints_file,opt.offset,config.dataformat, self.inputSize[0], config.outputSize[0],opt.optimizer,opt.epsilon,opt.momentum,
-                                    opt.hm_lossselect,opt.epsilon_loss,opt.w,opt.gaussian_thres, opt.gaussian_sigma,
-                                    config.datanumber, opt.batch,opt.epoch,total_iterations, opt.lr_type,lr,opt.decay_rate,opt.require_improvement,
-                                    opt.j_min,opt.j_max,opt.test_epoch,training_time,train_loss, best_validation_accuracy))
-                print("长时间未提升, 停止优化。")
-                break  # 跳出循环
 
             if i % Trainer.TEST_EVERY == 0:
                 inputs, heatmaps = self.dataValProvider[0].drawn()
@@ -385,9 +394,11 @@ class Trainer:
                 kps_acc = self.cal_kps_acc(distances_kps_acc)
                 summary = tf.Summary(value=[tf.Summary.Value(tag="testset_accuracy", simple_value=mean(distances))])
                 Val_acc = mean(distances)
-                print("Model_Folder:"+str(opt.Model_folder_name)+"|"+"Epoch:"+str(i)+"|" + "-- Train Loss :" + train_loss  +"|"+ "-- Val Acc:" + str(Val_acc)[:4] + "|" + "--lr:" + str(cur_lr))
+                print("Model_Folder:{}|--Epoch:{}|--isTrain:{}|--Earlystop:{}|--Train Loss:{}|--Val Acc:{}|--lr:{}".format(
+                    str(opt.Model_folder_name),str(i),str(opt.isTrain),str(opt.Early_stopping),train_loss, str(Val_acc)[:4] ,str(cur_lr)))
+
                 result.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
-                             format(modeltype,opt.isTrain,opt.checkpoints_file,opt.offset,config.dataformat, self.inputSize[0],
+                             format(modeltype,opt.isTrain,opt.checkpoints_file,opt.offset,str(config.dataformat), self.inputSize[0],
                                     config.outputSize[0],opt.optimizer,opt.epsilon,opt.momentum,opt.hm_lossselect,opt.epsilon_loss,
                                     opt.w,opt.gaussian_thres, opt.gaussian_sigma,config.datanumber, i, opt.lr_type,opt.decay_rate,lr,
                                     opt.require_improvement,opt.j_min,opt.j_max,opt.test_epoch,training_time,train_loss, Val_acc,kps_acc[0],
@@ -411,9 +422,13 @@ class Trainer:
                 tmp = tf.summary.image("heatmap_predicted_" + str(i), currHeatmapViz).eval(session=self.sess)
                 self.fileWriter.add_summary(tmp, i)
 
-        # result_all.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
-        #                  format(opt.Model_folder_name, modeltype, opt.isTrain, opt.checkpoints_file, opt.offset,
-        #                         config.dataformat, self.inputSize[0], config.outputSize[0], opt.optimizer, opt.epsilon,
-        #                         opt.momentum,opt.hm_lossselect, opt.epsilon_loss, opt.w, opt.gaussian_thres, opt.gaussian_sigma,
-        #                         config.datanumber, opt.batch, opt.epoch, total_iterations, opt.lr_type,lr, opt.decay_rate,
-        #                         opt.require_improvement,opt.j_min,opt.j_max,opt.test_epoch,training_time,train_loss, best_validation_accuracy))
+        if opt.Early_stopping == False:
+            result_all.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
+                             format(opt.Model_folder_name, modeltype, opt.isTrain, opt.checkpoints_file, opt.offset,
+                           str(config.dataformat), self.inputSize[0], config.outputSize[0], opt.optimizer, opt.epsilon,
+                           opt.momentum,
+                           opt.hm_lossselect, opt.epsilon_loss, opt.w, opt.gaussian_thres, opt.gaussian_sigma,
+                           config.datanumber, opt.batch, opt.epoch, total_iterations, opt.lr_type, lr, opt.decay_rate,
+                           opt.require_improvement,
+                           opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss, best_validation_accuracy,
+                           config.dataset_comment))
