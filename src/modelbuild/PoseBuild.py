@@ -1,7 +1,7 @@
 import os
 import tensorflow as tf
 from opt import opt
-import config_cmd as config
+from Config import config_cmd as config
 from src.trainer.trainer import Trainer
 from src.models.posenet import  PoseNet
 from src.models.posenetv2 import PoseNetv2

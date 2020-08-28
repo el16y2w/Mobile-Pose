@@ -7,7 +7,7 @@ from statistics import mean
 import numpy as np
 import os
 import tensorflow as tf
-import config_cmd as config
+from Config import config_cmd as config
 from opt import opt
 from src.utils.loss import wing_loss
 from src.utils.loss import AdapWingLoss

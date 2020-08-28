@@ -3,7 +3,7 @@ import os
 import numpy as np
 from src.utils.body_cover import BodyCover
 from src.utils.pose import Pose2D, PoseConfig
-import config
+from Config import config
 
 class Pose2DInterface:
 

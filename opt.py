@@ -18,10 +18,10 @@ tf.app.flags.DEFINE_boolean('offset', True, 'offset')
 
 tf.app.flags.DEFINE_string("backbone", 'mobilenetv2', "backbone:mobilenetv1/mobilenetv2"
                                                       "/mobilenetv3/hourglass/efficientnet")
-tf.app.flags.DEFINE_string("modeloutputFile", 'Yogapose', "model output dir")
+tf.app.flags.DEFINE_string("modeloutputFile", 'Yogapose_initiaizer', "model output dir")
 tf.app.flags.DEFINE_string("checkpoints_file", None, " checkpoints file")
-tf.app.flags.DEFINE_string("checkpoinsaveDir", 'Yogapose', " checkpoints save dir")
-tf.app.flags.DEFINE_string("train_all_result", 'Result/Yogapose', "model name")
+tf.app.flags.DEFINE_string("checkpoinsaveDir", 'Yogapose_initiaizer', " checkpoints save dir")
+tf.app.flags.DEFINE_string("train_all_result", 'Result/Yogapose_initiaizer', "model name")
 
 
 

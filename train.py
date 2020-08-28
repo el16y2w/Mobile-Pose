@@ -1,8 +1,8 @@
 import tensorflow as tf
-import config
+from Config import config
 import os
 import time
-from modelbuild.PoseBuild import train_pose
+from src.modelbuild.PoseBuild import train_pose
 from Pose_eval import poseevalpckh
 
 time_str = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())

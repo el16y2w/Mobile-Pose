@@ -10,7 +10,7 @@ from __future__ import print_function
 
 import tensorflow as tf
 from src.models.outputlayer import finallayerforoffsetoption
-import config
+from Config import config
 from src.models import Layerprovider
 
 

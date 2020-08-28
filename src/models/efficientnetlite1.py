@@ -1,5 +1,3 @@
-import os
-import config
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
 import src.models.efficientnet.lite.efficientnet_lite_builder as efficientnet_lite_builder

@@ -1,6 +1,6 @@
 import tensorflow as tf
 from src.models.outputlayer import finallayerforoffsetoption
-import config
+from Config import config
 if config.activate_function == 'relu':
     from src.models.Layerprovider import LayerProvider
 elif config.activate_function == 'swish':

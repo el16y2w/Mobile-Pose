@@ -200,7 +200,7 @@ def _batch_normalization_layer(inputs, momentum=0.997, epsilon=1e-3, is_training
 def _conv2d_layer(inputs, filters_num, kernel_size, name, use_bias=False, strides=1, reuse=None, padding="SAME"):
     conv = tf.layers.conv2d(
         inputs=inputs, filters=filters_num,
-        kernel_size=kernel_size, strides=[strides, strides], kernel_initializer=tf.glorot_uniform_initializer(),
+        kernel_size=kernel_size, strides=[strides, strides], kernel_initializer=tf.RandomUniform(), #tf.glorot_uniform_initializer(),
         padding=padding, #('SAME' if strides == 1 else 'VALID'),
         kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=5e-4), use_bias=use_bias, name=name,
         reuse=reuse)

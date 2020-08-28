@@ -8,11 +8,12 @@ import numpy as np
 import os
 import time
 import tensorflow as tf
-import config_cmd as config
+from Config import config_cmd as config
 from opt import opt
 from src.utils.loss import wing_loss
 from src.utils.loss import AdapWingLoss
 from src.utils.loss import Smooth_l1_loss
+
 exp_dir = os.path.join("Result/{}/{}".format(opt.modeloutputFile, opt.Model_folder_name))
 
 

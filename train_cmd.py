@@ -1,5 +1,5 @@
 import tensorflow as tf
-import config_cmd as config
+from Config import config_cmd as config
 import os
 import time
 from src.modelbuild.PoseBuild import train_pose

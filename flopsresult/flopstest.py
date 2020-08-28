@@ -9,7 +9,7 @@ from src.models.shufflenet import Shufflenetget
 from src.models.senet import Senetget
 import os
 import time
-import config
+from Config import config
 time_str = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
 def exportflops(inputshape ,model_type, outputFile="/media/hkuit104/24d4ed16-ee67-4121-8359-66a09cede5e7/PoseEstimation/flopsresult/flopstest.pb", outputName="Output"):
     output = outputFile

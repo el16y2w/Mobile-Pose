@@ -1,4 +1,4 @@
-import config
+from Config import config
 import tensorflow as tf
 import src.models.efficientnet.lite.efficientnet_lite_builder as efficientnet_lite_builder
 from src.models.Layerprovider import LayerProvider

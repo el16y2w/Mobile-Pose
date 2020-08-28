@@ -1,6 +1,6 @@
 from src.models.Layerprovider import LayerProvider
 import tensorflow as tf
-import config
+from Config import config
 
 
 
