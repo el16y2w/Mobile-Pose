@@ -5,7 +5,7 @@ FLAGS = tf.app.flags.FLAGS
 
 "----------------------------- Training options -----------------------------"
 tf.app.flags.DEFINE_integer("batch", 8, "batch size")
-tf.app.flags.DEFINE_integer("epoch", 10000, "Current epoch")
+tf.app.flags.DEFINE_integer("epoch", 10, "Current epoch")
 tf.app.flags.DEFINE_integer("fromStep", 0, "Initial epoch")
 tf.app.flags.DEFINE_integer("SAVE_EVERY", 10, "tensorboard save")
 tf.app.flags.DEFINE_integer("TEST_EVERY", 1, "tensorboard test")
@@ -13,9 +13,10 @@ tf.app.flags.DEFINE_integer("VIZ_EVERY", 10, "tensorboard viz")
 
 tf.app.flags.DEFINE_string("Model_folder_name", 'A_0', "Model_folder_name")
 
-tf.app.flags.DEFINE_boolean("Early_stopping",False,"early stop or not")
+tf.app.flags.DEFINE_boolean("Early_stopping",True,"early stop or not")
 tf.app.flags.DEFINE_boolean('isTrain', True, 'trainable or not')
-tf.app.flags.DEFINE_boolean('offset', True, 'offset')
+tf.app.flags.DEFINE_boolean('isTrainpre',True,'if pre train,set false')
+tf.app.flags.DEFINE_boolean('offset', False, 'offset')
 
 tf.app.flags.DEFINE_string("backbone", 'mobilenetv2', "backbone:mobilenetv1/mobilenetv2"
                                                       "/mobilenetv3/hourglass/efficientnet")
@@ -27,6 +28,9 @@ tf.app.flags.DEFINE_string("train_all_result", 'Result/trash', "model name")
 
 
 "----------------------------- Data options -----------------------------"
+tf.app.flags.DEFINE_string("dataset",'MPII',"choose data format:MPII/COCO/YOGA")
+tf.app.flags.DEFINE_integer("totaljoints", 16, "MPII16/COCO13/YOGA13")
+
 tf.app.flags.DEFINE_integer("inputResH", 224, "Input image height")
 tf.app.flags.DEFINE_integer("inputResW", 224, "Input image width")
 tf.app.flags.DEFINE_integer("outputResH", 56, "Output image height")
@@ -39,8 +43,8 @@ tf.app.flags.DEFINE_boolean('grayimage', False, 'image type')
 #lr
 tf.app.flags.DEFINE_string("lr_type", "natural_exp_decay","exponential_decay|polynomial_decay|natural_exp_decay|inverse_time_decay")
 tf.app.flags.DEFINE_float("lr", 0.001, "learning rate")
-tf.app.flags.DEFINE_float("decay_rate", 0.95, "learning rate decay rate")
-tf.app.flags.DEFINE_integer("decay_steps", 1000, "learning rate decay steps")
+tf.app.flags.DEFINE_float("decay_rate", 0.98, "learning rate decay rate")
+tf.app.flags.DEFINE_integer("decay_steps", 5000, "learning rate decay steps")
 
 #optimizer
 tf.app.flags.DEFINE_float("epsilon", 1e-8, "epsilon")

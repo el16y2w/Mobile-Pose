@@ -6,9 +6,9 @@ json_dir = 'img/tree.json'
 
 #Train model
 #select data
-dataformat = ['yoga']
+dataformat = ['coco']
 datanumber = 1 #multiple
-dataset_comment = "single_yoga2_train"
+dataset_comment = "MPIIimages and yoga"
 
 #model type :
 # mobilenetv1: inputsize(160,160), ouput size (10,10)
@@ -19,18 +19,19 @@ dataset_comment = "single_yoga2_train"
 # efficientnet : inputsize(224,224), output size(56,56)
 
 #data prepare
-# train_annotFile = "img/tree.json"
-# train_imageDir = "img/tree"
-# test_annotFile = "img/tree.json"
-# test_imageDir = "img/tree"
+train_annotFile = "img/mpiitrain.json"
+train_imageDir = ""
+test_annotFile = "img/mpiitrain.json"
+test_imageDir = ""
+
 # train_annotFile1 = "coco/person_keypoints_train2017.json"
 # train_imageDir1 = "coco/images"
 # test_annotFile1 = "coco/person_keypoints_val2017.json"
 # test_imageDir1 = "coco/images"
-train_annotFile = "img/single_yoga2_train.json"
-train_imageDir = "img/single_yoga2_train"
-test_annotFile = "img/single_yoga2_test.json"
-test_imageDir = "img/single_yoga2_test"
+# train_annotFile1 = "img/single_yoga2_train.json"
+# train_imageDir1 = "img/single_yoga2_train"
+# test_annotFile1 = "img/single_yoga2_test.json"
+# test_imageDir1 = "img/single_yoga2_test"
 dataprovider_trainanno =[train_annotFile]
 dataprovider_trainimg = [train_imageDir]
 dataprovider_testanno = [test_annotFile]
@@ -43,7 +44,8 @@ inputshapeforflops = [(1, 224, 224, 3)]
 
 #For DUC
 pixelshuffle = [2]
-convb = [[3,3,52,1,"psconv1"]]
+convb_13 = [[3,3,52,1,"psconv1"]]
+convb_16 = [[3,3,64,1,"psconv1"]]
 
 #comment :images number
 total_images = 200000

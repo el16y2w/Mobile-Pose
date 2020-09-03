@@ -1,6 +1,4 @@
-import os
 import tensorflow as tf
-from opt import opt
 from Config import config_cmd as config
 from src.trainer.trainer import Trainer
 from src.models.posenet import  PoseNet
@@ -9,12 +7,13 @@ from src.models.posenetv3 import PoseNetv3
 from src.models.hrglassnetv3 import HourGlassNet
 from src.models.efficientnetlite0 import EfficientNetLite0
 from src.models.efficientnetlite1 import EfficientNetLite1
-from src.models.shufflenet import Shufflenetget
 from src.models.senet import Senetget
+from src.models.shufflenet import Shufflenetget
 from src.dataprovider.Gaudataprovider import GauDataProviderAdaptator
+from opt import opt
+import os
 
 exp_dir = os.path.join("Result/{}/{}".format(opt.modeloutputFile, opt.Model_folder_name))
-
 class buildPoseNet(object):
 
     def __init__(self):
@@ -25,7 +24,7 @@ class buildPoseNet(object):
 
 
     def build(self,dataTrainProvider,dataValProvider, time, inputsize, inputshape, checkpointFile, is4Train
-              , model_type ):
+              , model_type):
 
 
         if model_type == "hourglass":
@@ -38,7 +37,6 @@ class buildPoseNet(object):
             intermediate_out = model.getInterOut()
 
             inputImage = model.getInput()
-
             if self.offsetset == False:
                 trainer = Trainer(inputImage, output, intermediate_out, dataTrainProvider, dataValProvider, self.modelDir,
                                      Trainer.posenetLoss_nooffset,inputsize,self.dataformat,self.offsetset,time)
@@ -55,24 +53,26 @@ class buildPoseNet(object):
                 model = EfficientNetLite0(inputshape,is4Train = is4Train)
             elif model_type == "efficientnet1":
                 model = EfficientNetLite1(inputshape,is4Train = is4Train)
-            elif model_type == "shufflenet":
-                model = Shufflenetget(inputshape)
             elif model_type == "senet":
                 model = Senetget(inputshape)
-            else:
+            elif model_type == "shufflenet":
+                model = Shufflenetget(inputshape)
+            elif model_type == "mobilenetv2":
                 model = PoseNetv2(inputshape,is4Train=is4Train)
+            else:
+                print("wrong model")
 
             output = model.getOutput()
             print(output.get_shape())
 
             inputImage = model.getInput()
 
-            if self.offsetset == True:
+            if opt.offset == False:
                 trainer = Trainer(inputImage, output, [output], dataTrainProvider, dataValProvider, self.modelDir,
-                                      Trainer.posenetLoss,inputsize,self.dataformat,self.offsetset,time)
+                                      Trainer.posenetLoss_nooffset,inputsize,self.dataformat,self.offsetset,time)
             else:
                 trainer = Trainer(inputImage, output, [output], dataTrainProvider, dataValProvider, self.modelDir,
-                                  Trainer.posenetLoss_nooffset, inputsize, self.dataformat, self.offsetset, time)
+                                      Trainer.posenetLoss,inputsize,self.dataformat,self.offsetset,time)
 
         if not isinstance(checkpointFile, type(None)):
             trainer.restore(checkpointFile)
@@ -119,17 +119,14 @@ class train_pose(object):
         posenet.start(opt.fromStep, epochs, lrs, model, time_str)
 
         if model == "hourglass":
-            self.export(posenet, outputName= exp_dir+"/"+model + str(isTrain)+"hourglass_out_3")
+            self.export(posenet, outputName= exp_dir + "/" + model + str(isTrain)+"hourglass_out_3")
 
         else:
             if self.offsetset == True:
-                self.export(posenet, outputFile= exp_dir+"/" +model + str(isTrain)+time_str + ".pb")
+                self.export(posenet, outputFile= exp_dir+"/"+model + str(isTrain)+time_str + ".pb")
             else:
-                if model == "efficientnet1":
-                    self.export(posenet, outputFile=exp_dir+"/"+model + str(isTrain) + time_str + ".pb")
-                else:
-                    self.export(posenet, outputFile=exp_dir+model + str(isTrain) + time_str + ".pb",
-                                outputName="merge_Output/Output_pointwise/BatchNorm/FusedBatchNorm")
+                self.export(posenet, outputFile=exp_dir+"/"+model + str(isTrain) + time_str + ".pb")
+
 
 
     def export(self,trainer, outputFile, outputName="Output"):

@@ -8,14 +8,13 @@ import numpy as np
 import os
 import time
 import tensorflow as tf
-from Config import config_cmd as config
 from opt import opt
 from src.utils.loss import wing_loss
-from src.utils.loss import AdapWingLoss
-from src.utils.loss import Smooth_l1_loss
+from src.utils.loss import adaptivewingLoss
+from src.utils.loss import smooth_l1_loss
+from Config import config_cmd as config
 
 exp_dir = os.path.join("Result/{}/{}".format(opt.modeloutputFile, opt.Model_folder_name))
-
 
 class Trainer:
     SAVE_EVERY = opt.SAVE_EVERY
@@ -33,23 +32,20 @@ class Trainer:
         self.offsetornot = offsetset
         self.dataformat = datatpye
         self.time = time
-
         if self.offsetornot == True:
-            self.heatmapGT = tf.placeholder(tf.float32, shape=(None, output.shape[1], output.shape[2], 13 * 3),
+            self.heatmapGT = tf.placeholder(tf.float32, shape=(None, output.shape[1], output.shape[2], opt.totaljoints * 3),
                                            name='heatmapGT')
         else:
-            self.heatmapGT = tf.placeholder(tf.float32, shape=(None, output.shape[1], output.shape[2], 13),
+            self.heatmapGT = tf.placeholder(tf.float32, shape=(None, output.shape[1], output.shape[2], opt.totaljoints),
                                          name='heatmapGT')
 
         self.globalStep = tf.Variable(0, trainable=False)
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
-
         self.trainLoss = []
         self.updater = []
         self.sess = tf.Session(config=config) if isinstance(sess, type(None)) else sess
         self.learningRate = tf.placeholder(tf.float32, [], name='learningRate')
-
         self.lr = tf.train.exponential_decay(self.learningRate, global_step=self.globalStep,
                                    decay_steps=opt.decay_steps, decay_rate=opt.decay_rate, staircase=True)
         if opt.optimizer == "Adam":
@@ -61,6 +57,7 @@ class Trainer:
                                                        use_locking=False, name='GrandientDescent')
         else:
             raise ValueError("Your optimizer name is wrong")
+
         for i in range(len(self.dataTrainProvider)):
             update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
             Loss = self._buildLoss(self.heatmapGT, outputStages, dataTrainProvider[i].getBatchSize(), lossFunc,
@@ -79,20 +76,20 @@ class Trainer:
 
         self.saver = tf.train.Saver(max_to_keep=10)
         for i in range(len(self.dataformat)):
-            self.savePath = os.path.join(exp_dir, opt.backbone +"checkpoints" + self.time)
+            self.savePath = os.path.join(exp_dir, opt.backbone + "checkpoints" + self.time)
 
             if datatpye[i] == 'yoga':
                 tf.summary.scalar("trainLoss", self.trainLoss[i])
 
-                self.fileWriter = tf.summary.FileWriter(os.path.join(exp_dir, opt.backbone+"logs_yoga"+ self.time), self.sess.graph)
+                self.fileWriter = tf.summary.FileWriter(os.path.join(exp_dir, opt.backbone+ "logs_yoga"+ self.time), self.sess.graph)
             if datatpye[i] == 'coco':
                 #self.savePath = os.path.join(modelDir, "checkpoints_coco" + self.time)
                 tf.summary.scalar("trainLoss", self.trainLoss[i])
 
                 self.fileWriter = tf.summary.FileWriter(
-                    os.path.join(exp_dir, opt.backbone +"logs_coco" + self.time), self.sess.graph)
+                    os.path.join(exp_dir, opt.backbone + "logs_coco" + self.time), self.sess.graph)
         self.fileWriter = tf.summary.FileWriter(
-            os.path.join(exp_dir, opt.backbone +"logs_all" + self.time), self.sess.graph)
+            os.path.join(exp_dir, opt.backbone + "logs_all" + self.time), self.sess.graph)
         self.summaryMerge = tf.summary.merge_all()
 
     def restore(self, checkpointPath):
@@ -110,21 +107,33 @@ class Trainer:
 
         return (tf.reduce_sum(losses) / len(outputStages)) / batchSize
 
+    # @staticmethod
+    # def l2Loss(gt, pred, lossName, batchSize):
+    #     return tf.nn.l2_loss(pred - gt, name=lossName)
 
     def posenetLoss_nooffset(gt, pred, lossName, batchSize):
-        predHeat, gtHeat = pred[:, :, :, :len(PoseConfig.NAMES)], gt[:, :, :, :len(PoseConfig.NAMES)]
+        if opt.dataset == "COCO" or opt.dataset =="YOGA" :
+            predHeat, gtHeat = pred[:, :, :, :len(PoseConfig.NAMES)], gt[:, :, :, :len(PoseConfig.NAMES)]
+            totaljoints = len(PoseConfig.NAMES)
+        elif opt.dataset == "MPII":
+            predHeat, gtHeat = pred[:, :, :, :len(PoseConfig.MPIINAMES)], gt[:, :, :, :len(PoseConfig.MPIINAMES)]
+            totaljoints = len(PoseConfig.MPIINAMES)
+        else:
+            raise ValueError("Your dataset name is wrong")
+
         if opt.hm_lossselect == 'l2':
             heatmapLoss = tf.nn.l2_loss(predHeat - gtHeat, name=lossName + "_heatmapLoss")
         elif opt.hm_lossselect == 'wing':
             heatmapLoss = wing_loss(predHeat, gtHeat)
         elif opt.hm_lossselect == 'adaptivewing':
-            heatmapLoss = AdapWingLoss(predHeat, gtHeat)
+            heatmapLoss = adaptivewingLoss(predHeat, gtHeat)
         elif opt.hm_lossselect == 'smooth_l1':
-            heatmapLoss = Smooth_l1_loss(None, predHeat, gtHeat)
+            heatmapLoss = smooth_l1_loss(None, predHeat, gtHeat)
         else:
             raise ValueError("Your optimizer name is wrong")
+
         for recordId in range(batchSize):
-            for jointId in range(len(PoseConfig.NAMES)):
+            for jointId in range(totaljoints):
                 print(str(recordId) + "/" + str(batchSize) + " : " + str(jointId))
                 # ================================> decode <x,y> from gt heatmap
                 inlinedPix = tf.reshape(gtHeat[recordId, :, :, jointId], [-1])
@@ -139,27 +148,41 @@ class Trainer:
         return heatmapLoss
 
     def posenetLoss(gt, pred, lossName, batchSize):
-        predHeat, gtHeat = pred[:, :, :, :len(PoseConfig.NAMES)], gt[:, :, :, :len(PoseConfig.NAMES)]
+        if opt.dataset == "COCO" or opt.dataset =="YOGA":
+            predHeat, gtHeat = pred[:, :, :, :len(PoseConfig.NAMES)], gt[:, :, :, :len(PoseConfig.NAMES)]
+            predOffX, gtOffX = pred[:, :, :, len(PoseConfig.NAMES):(2 * len(PoseConfig.NAMES))], gt[:, :, :,
+                                                                                                len(PoseConfig.NAMES):(
+                                                                                                       2 * len(
+                                                                                                         PoseConfig.NAMES))]
+            predOffY, gtOffY = pred[:, :, :, (2 * len(PoseConfig.NAMES)):], gt[:, :, :, (2 * len(PoseConfig.NAMES)):]
+            totaljoints = len(PoseConfig.NAMES)
+        elif opt.dataset == "MPII":
+            predHeat, gtHeat = pred[:, :, :, :len(PoseConfig.MPIINAMES)], gt[:, :, :, :len(PoseConfig.MPIINAMES)]
+            predOffX, gtOffX = pred[:, :, :, len(PoseConfig.MPIINAMES):(2 * len(PoseConfig.MPIINAMES))], gt[:, :, :,
+                                                                                                len(PoseConfig.MPIINAMES):(
+                                                                                                       2 * len(
+                                                                                                         PoseConfig.MPIINAMES))]
+            predOffY, gtOffY = pred[:, :, :, (2 * len(PoseConfig.MPIINAMES)):], gt[:, :, :, (2 * len(PoseConfig.MPIINAMES)):]
+            totaljoints = len(PoseConfig.MPIINAMES)
+        else:
+            raise ValueError("Your dataset name is wrong")
+
         if opt.hm_lossselect == 'l2':
             heatmapLoss = tf.nn.l2_loss(predHeat - gtHeat, name=lossName + "_heatmapLoss")
         elif opt.hm_lossselect == 'wing':
             heatmapLoss = wing_loss(predHeat, gtHeat)
         elif opt.hm_lossselect == 'adaptivewing':
-            heatmapLoss = AdapWingLoss(predHeat, gtHeat)
+            heatmapLoss = adaptivewingLoss(predHeat, gtHeat)
         elif opt.hm_lossselect == 'smooth_l1':
-            heatmapLoss = Smooth_l1_loss(None, predHeat, gtHeat)
+            heatmapLoss = smooth_l1_loss(None, predHeat, gtHeat)
         else:
             raise ValueError("Your optimizer name is wrong")
-
-        predOffX, gtOffX = pred[:, :, :, len(PoseConfig.NAMES):(2 * len(PoseConfig.NAMES))], gt[:, :, :,
-                                                                                            len(PoseConfig.NAMES):(
-                                                                                                   2 * len(
-                                                                                             PoseConfig.NAMES))]
-        predOffY, gtOffY = pred[:, :, :, (2 * len(PoseConfig.NAMES)):], gt[:, :, :, (2 * len(PoseConfig.NAMES)):]
         offsetGT, offsetPred = [], []
 
+        offsetLoss = 0
+
         for recordId in range(batchSize):
-            for jointId in range(len(PoseConfig.NAMES)):
+            for jointId in range(totaljoints):
                 print(str(recordId) + "/" + str(batchSize) + " : " + str(jointId))
                 # ================================> decode <x,y> from gt heatmap
 
@@ -185,6 +208,7 @@ class Trainer:
 
         tf.summary.scalar(lossName + "_heatmapLoss", heatmapLoss)
         tf.summary.scalar(lossName + "_offsetLoss", offsetLoss)
+
         return (heatmapLoss + offsetLoss)
 
     def _buildUpdater(self, loss, globalStep, lr):
@@ -198,8 +222,12 @@ class Trainer:
 
 
     def _toPose(self, output):
-
-        totalJoints = len(PoseConfig.NAMES)
+        if opt.dataset == "COCO" or opt.dataset =="YOGA":
+            totalJoints = len(PoseConfig.NAMES)
+        elif opt.dataset == "MPII":
+            totalJoints = len(PoseConfig.MPIINAMES)
+        else:
+            raise ValueError("Your dataset name is wrong")
 
         if self.offsetornot == True:
             heatmap = output[:, :, :totalJoints]
@@ -264,12 +292,13 @@ class Trainer:
     def cal_kps_acc(self,kps_acc):
         value = []
         acc = []
-        for i in range(len(kps_acc[0])):
+        j = 0
+        for i in range(len(kps_acc[j])):
             for item in kps_acc:
                 value.append(item[i])
             acc.append(mean(value))
+            j = j+1
         return acc
-
 
     def start(self, fromStep, totalSteps, lr, modeltype, date):
         total_iterations = 0
@@ -279,11 +308,10 @@ class Trainer:
         j_num = 0
         require_improvement = opt.require_improvement  # 如果在1000轮内没有改进，停止迭代
 
-
         result = open(os.path.join(exp_dir, opt.backbone + date + "_result.csv"), "w")
         result.write(
             "model_name,isTrain,checkpoints_file,offset,traindata,inputsize,outputsize,optimizer,opt_epilon,momentum,heatmaploss, epsilon_loss, "
-            "loss_w,Gauthreshold, GauSigma, datasetnumber,epochs, learning_type,decayrate,learning-rate, require_improvement,j_min,j_max,test_epoch,"
+            "loss_w,Gauthreshold, GauSigma, datasetnumber,Dataset,Totaljoints,epochs, learning_type,decayrate,learning-rate, require_improvement,j_min,j_max,test_epoch,"
             "training_time,train_loss, val_acc,head, "
             "lShoulder, rShoulder, lElbow, rElbow, lWrist, rWrist, lHip,rHip, lKnee, rKnee, lAnkle, rAnkle\n")
         result.close()
@@ -293,25 +321,26 @@ class Trainer:
             result_all = open(os.path.join(opt.train_all_result, "training_result.csv"), "w")
             result_all.write(
                 "Index,Backbone,isTrain,checkpoints_file,offset,traindata,inputsize,outputsize,optimizer,opt_epilon,momentum,heatmaploss, epsilon_loss, "
-                "loss_w,Gauthreshold, GauSigma, datasetnumber,Batch,Total_epochs,Stop_epoch, learning_type,learning-rate,decay_rate,require_improvement, "
+                "loss_w,Gauthreshold, GauSigma, datasetnumber,Batch,Dataset,Totaljoints,Total_epochs,Stop_epoch, learning_type,learning-rate,decay_rate,require_improvement, "
                 "j_min,j_max,test_epoch,training_time,train_loss, best_validation_accuracy, Dataset\n")
             result_all.close()
 
         for i in range(fromStep, fromStep + totalSteps + 1):
             start_time = time.time()
-
             total_iterations += 1
 
             result = open(os.path.join(exp_dir, opt.backbone + date + "_result.csv"), "a+")
             result_all = open(os.path.join(opt.train_all_result, "training_result.csv"), "a+")
             for j in range(config.datanumber):
                 inputs, heatmaps = self.dataTrainProvider[j].drawn()
-                res_train = self.sess.run([self.trainLoss[j], self.updater[j], self.summaryMerge],
+                res = self.sess.run([self.trainLoss[j], self.updater[j], self.summaryMerge],
                                     feed_dict={self.inputImage: inputs, self.heatmapGT: heatmaps,
                                                self.learningRate: lr})
-                self.fileWriter.add_summary(res_train[2], i)
+                self.fileWriter.add_summary(res[2], i)
+                print(str(i) + " -- TRAIN" + str(j) + " : " + str(res[0]))
+
             training_time = time.time() - start_time
-            train_loss = str(res_train[0])
+            train_loss = str(res[0])
 
             if opt.Early_stopping:
             # 每100轮迭代输出状态
@@ -349,12 +378,12 @@ class Trainer:
                 # 如果在require_improvement轮次内未有提升
                 if total_iterations - last_improvement > require_improvement or j_num > opt.j_max:
                     result_all.write(
-                        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
+                        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
                         format(opt.Model_folder_name, modeltype, opt.isTrain, opt.checkpoints_file, opt.offset,
                                str(config.dataformat), self.inputSize[0], config.outputSize[0], opt.optimizer, opt.epsilon,
                                opt.momentum,
                                opt.hm_lossselect, opt.epsilon_loss, opt.w, opt.gaussian_thres, opt.gaussian_sigma,
-                               config.datanumber, opt.batch, opt.epoch, total_iterations, opt.lr_type, lr, opt.decay_rate,
+                               config.datanumber, opt.batch, opt.dataset,opt.totaljoints,opt.epoch, total_iterations, opt.lr_type, lr, opt.decay_rate,
                                opt.require_improvement,
                                opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss, best_validation_accuracy,
                                config.dataset_comment))
@@ -366,12 +395,13 @@ class Trainer:
                     checkpoint_path = os.path.join(self.savePath, 'model')
                     self.saver.save(self.sess, checkpoint_path, global_step=i)
 
+
             if i % Trainer.TEST_EVERY == 0:
                 inputs, heatmaps = self.dataValProvider[0].drawn()
 
-                res_val = self.sess.run([self.output, self.summaryMerge],
+                res = self.sess.run([self.output, self.summaryMerge],
                                     feed_dict={self.inputImage: inputs, self.heatmapGT: heatmaps, self.learningRate: 0})
-                Val_Loss = str(res_val[0][0][0][0][:13])
+
                 fullscreen_bbox = BBox(0, 1, 0, 1)
 
                 distances = []
@@ -379,7 +409,7 @@ class Trainer:
                 for batch_id in range(inputs.shape[0]):
                     pose_gt, _ = Pose2DInterface.our_approach_postprocessing(heatmaps[batch_id, :, :, :],
                                                                              fullscreen_bbox, self.inputSize)
-                    pose_pred, _ = Pose2DInterface.our_approach_postprocessing(res_val[0][batch_id, :, :, :],
+                    pose_pred, _ = Pose2DInterface.our_approach_postprocessing(res[0][batch_id, :, :, :],
                                                                                fullscreen_bbox, self.inputSize)
 
                     # pose_pred
@@ -388,28 +418,32 @@ class Trainer:
                     tmp = pose_pred.get_joints()
                     tmp[~pose_pred.get_active_joints(), :] = 0.5
                     pose_pred = Pose2D(tmp)
-                    distances_all,distances_kps = pose_gt.distance_to(pose_pred)
+
+                    distances_all, distances_kps = pose_gt.distance_to(pose_pred)
                     distances.append(distances_all)
                     distances_kps_acc.append(distances_kps)
+
                 kps_acc = self.cal_kps_acc(distances_kps_acc)
                 summary = tf.Summary(value=[tf.Summary.Value(tag="testset_accuracy", simple_value=mean(distances))])
                 Val_acc = mean(distances)
                 print("Model_Folder:{}|--Epoch:{}|--isTrain:{}|--Earlystop:{}|--Train Loss:{}|--Val Acc:{}|--lr:{}".format(
                     str(opt.Model_folder_name),str(i),str(opt.isTrain),str(opt.Early_stopping),train_loss, str(Val_acc)[:4] ,str(cur_lr)))
 
-                result.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
+                result.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
                              format(modeltype,opt.isTrain,opt.checkpoints_file,opt.offset,str(config.dataformat), self.inputSize[0],
                                     config.outputSize[0],opt.optimizer,opt.epsilon,opt.momentum,opt.hm_lossselect,opt.epsilon_loss,
-                                    opt.w,opt.gaussian_thres, opt.gaussian_sigma,config.datanumber, i, opt.lr_type,opt.decay_rate,lr,
+                                    opt.w,opt.gaussian_thres, opt.gaussian_sigma,config.datanumber, opt.dataset,opt.totaljoints,i, opt.lr_type,opt.decay_rate,lr,
                                     opt.require_improvement,opt.j_min,opt.j_max,opt.test_epoch,training_time,train_loss, Val_acc,kps_acc[0],
                                     kps_acc[1],kps_acc[2],kps_acc[3],kps_acc[4],kps_acc[5],kps_acc[6],kps_acc[7],kps_acc[8],kps_acc[9],
                                     kps_acc[10],kps_acc[11],kps_acc[12]))
+                self.fileWriter.add_summary(summary, i)
                 self.fileWriter.add_summary(summary, i)
 
             if i % Trainer.VIZ_EVERY == 0:
                 inputs, heatmaps = self.dataValProvider[0].drawn()
                 res = self.sess.run([self.output, self.summaryMerge],
                                     feed_dict={self.inputImage: inputs, self.heatmapGT: heatmaps, self.learningRate: 0})
+
                 currHeatmaps = res[0][0, :, :, :]
                 currImage = self._imageFeatureToImage(inputs[0, :, :, :])
                 currHeatmapViz = self._heatmapVisualisation(currHeatmaps)
@@ -421,14 +455,14 @@ class Trainer:
                 self.fileWriter.add_summary(tmp, i)
                 tmp = tf.summary.image("heatmap_predicted_" + str(i), currHeatmapViz).eval(session=self.sess)
                 self.fileWriter.add_summary(tmp, i)
-
-        if opt.Early_stopping == False:
-            result_all.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
-                             format(opt.Model_folder_name, modeltype, opt.isTrain, opt.checkpoints_file, opt.offset,
-                           str(config.dataformat), self.inputSize[0], config.outputSize[0], opt.optimizer, opt.epsilon,
-                           opt.momentum,
-                           opt.hm_lossselect, opt.epsilon_loss, opt.w, opt.gaussian_thres, opt.gaussian_sigma,
-                           config.datanumber, opt.batch, opt.epoch, total_iterations, opt.lr_type, lr, opt.decay_rate,
-                           opt.require_improvement,
-                           opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss, best_validation_accuracy,
-                           config.dataset_comment))
+        result_all.write(
+            "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
+                format(opt.Model_folder_name, modeltype, opt.isTrain, opt.checkpoints_file, opt.offset,
+                       str(config.dataformat), self.inputSize[0], config.outputSize[0], opt.optimizer, opt.epsilon,
+                       opt.momentum,
+                       opt.hm_lossselect, opt.epsilon_loss, opt.w, opt.gaussian_thres, opt.gaussian_sigma,
+                       config.datanumber, opt.batch, opt.dataset, opt.totaljoints, opt.epoch, total_iterations,
+                       opt.lr_type, lr, opt.decay_rate,
+                       opt.require_improvement,
+                       opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss, best_validation_accuracy,
+                       config.dataset_comment))
