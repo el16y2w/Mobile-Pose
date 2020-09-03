@@ -14,7 +14,7 @@ class Pose2DInterface:
 
     def __init__(self, session, protograph, post_processing, input_size, subject_padding, input_node_name, output_node_name):
 
-        os.environ['CUDA_VISIBLE_DEVICES'] = '2'
+        os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
         with tf.gfile.GFile(protograph, "rb") as f:
             restored_graph_def = tf.GraphDef()

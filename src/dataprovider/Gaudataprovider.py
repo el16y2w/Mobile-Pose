@@ -21,7 +21,8 @@ class GauDataProviderAdaptator:
         self.th = opt.gaussian_thres
         self.sigma = opt.gaussian_sigma
         self.offset =offset
-        self.debug()
+        if opt.checkanno == True:
+            self.debug()
 
     def put_heatmap(self, heatmap, plane_idx, center, sigma):
         center_x, center_y = center
@@ -269,11 +270,11 @@ class DataProvider:
 
     @staticmethod
     def build(cocoAnnotFile, cocoImgDir, inputSize, batchSize, datatype):
-        if datatype == 'coco':
-            coco = CocoInterface.build(cocoAnnotFile, cocoImgDir)
+        if datatype == 'coco' or  datatype == 'coco_mpii' or datatype == 'coco_mpii_13':
+            coco = CocoInterface.build(cocoAnnotFile, cocoImgDir,datatype)
 
         if datatype == 'yoga':
-            coco = CocoInterfaceyoga.build(cocoAnnotFile, cocoImgDir)
+            coco = CocoInterfaceyoga.build(cocoAnnotFile, cocoImgDir,datatype)
 
         mask = DataProvider.active_pose_mask(coco)
 

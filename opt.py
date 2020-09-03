@@ -5,7 +5,7 @@ FLAGS = tf.app.flags.FLAGS
 
 "----------------------------- Training options -----------------------------"
 tf.app.flags.DEFINE_integer("batch", 8, "batch size")
-tf.app.flags.DEFINE_integer("epoch", 10, "Current epoch")
+tf.app.flags.DEFINE_integer("epoch", 150000, "Current epoch")
 tf.app.flags.DEFINE_integer("fromStep", 0, "Initial epoch")
 tf.app.flags.DEFINE_integer("SAVE_EVERY", 10, "tensorboard save")
 tf.app.flags.DEFINE_integer("TEST_EVERY", 1, "tensorboard test")
@@ -20,14 +20,16 @@ tf.app.flags.DEFINE_boolean('offset', True, 'offset')
 
 tf.app.flags.DEFINE_string("backbone", 'mobilenetv2', "backbone:mobilenetv1/mobilenetv2"
                                                       "/mobilenetv3/hourglass/efficientnet")
-tf.app.flags.DEFINE_string("modeloutputFile", 'trash', "model output dir")
+tf.app.flags.DEFINE_string("modeloutputFile", 'YogaposeD', "model output dir")
 tf.app.flags.DEFINE_string("checkpoints_file", None, " checkpoints file")
-tf.app.flags.DEFINE_string("checkpoinsaveDir", 'trash', " checkpoints save dir")
-tf.app.flags.DEFINE_string("train_all_result", 'Result/trash', "model name")
+tf.app.flags.DEFINE_string("checkpoinsaveDir", 'YogaposeD', " checkpoints save dir")
+tf.app.flags.DEFINE_string("train_all_result", 'Result/YogaposeD', "model name")
 
 
 
 "----------------------------- Data options -----------------------------"
+tf.app.flags.DEFINE_boolean("checkanno", False,"check annotation")
+
 tf.app.flags.DEFINE_string("dataset",'MPII_13',"choose data format:MPII_13/MPII/COCO/YOGA")
 tf.app.flags.DEFINE_integer("totaljoints", 13, "MPII16/MPII_13/COCO13/YOGA13")
 

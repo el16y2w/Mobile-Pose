@@ -6,9 +6,9 @@ json_dir = 'img/tree.json'
 
 #Train model
 #select data
-dataformat = ['coco']
-datanumber = 1 #multiple
-dataset_comment = "MPIIimages and yoga"
+dataformat = ['coco_mpii_13','yoga']#coco_mpii_13,coco_mpii_16,yoga,coco
+datanumber = 2 #multiple
+dataset_comment = "MPIIimages and yogaaiall"
 
 #model type :
 # mobilenetv1: inputsize(160,160), ouput size (10,10)
@@ -28,14 +28,14 @@ test_imageDir = ""
 # train_imageDir1 = "coco/images"
 # test_annotFile1 = "coco/person_keypoints_val2017.json"
 # test_imageDir1 = "coco/images"
-# train_annotFile1 = "img/single_yoga2_train.json"
-# train_imageDir1 = "img/single_yoga2_train"
-# test_annotFile1 = "img/single_yoga2_test.json"
-# test_imageDir1 = "img/single_yoga2_test"
-dataprovider_trainanno =[train_annotFile]
-dataprovider_trainimg = [train_imageDir]
-dataprovider_testanno = [test_annotFile]
-dataprovider_testimg = [test_imageDir]
+train_annotFile1 = "img/ai_add_searchedyoga_train.json"
+train_imageDir1 = "img/ai_add_searchedyoga_train"
+test_annotFile1 = "img/ai_add_searchedyoga_test.json"
+test_imageDir1 = "img/ai_add_searchedyoga_test"
+dataprovider_trainanno =[train_annotFile,train_annotFile1]
+dataprovider_trainimg = [train_imageDir,train_imageDir1]
+dataprovider_testanno = [test_annotFile,test_annotFile1]
+dataprovider_testimg = [test_imageDir,test_imageDir1]
 inputSize = (224,224)
 inputshape = (None, 224, 224, 3)
 outputSize = (56,56)

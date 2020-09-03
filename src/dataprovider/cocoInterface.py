@@ -13,7 +13,7 @@ class CocoInterfaceyoga:
         self.annotations_keys = [imgId for imgId in self.annotations.keys()]
 
     @staticmethod
-    def build(annot_file, image_dir):
+    def build(annot_file, image_dir,datatype):
 
         # load annotations
         annot = json.load(open(annot_file, 'r'))
@@ -41,7 +41,7 @@ class CocoInterfaceyoga:
             kp = [(kp[i]/ img_width, kp[i+1]/ img_height) for i in range(len(kp))[::2]]
 
             kp = np.array(kp).astype(np.float32)
-            pose = Pose2D.build_from_coco(kp)
+            pose = Pose2D.build_from_coco(kp,datatype)
 
 
             if not img_id in annotations_res:
@@ -84,7 +84,7 @@ class CocoInterface:
         self.annotations_keys = [imgId for imgId in self.annotations.keys()]
 
     @staticmethod
-    def build(annot_file, image_dir):
+    def build(annot_file, image_dir,datatype):
 
         # load annotations
         annot = json.load(open(annot_file, 'r'))
@@ -111,7 +111,7 @@ class CocoInterface:
             kp = [(x / img_width, y / img_height) if v >= 1 else (-1, -1) for x, y, v in
                   zip(kp[0::3], kp[1::3], kp[2::3])]
             kp = np.array(kp).astype(np.float32)
-            pose = Pose2D.build_from_coco(kp)
+            pose = Pose2D.build_from_coco(kp,datatype)
 
             is_crowd = (entry['iscrowd'] == 1)
 

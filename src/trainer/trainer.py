@@ -283,6 +283,7 @@ class Trainer:
         cur_lr = lr
         j_num = 0
         require_improvement = opt.require_improvement  # 如果在1000轮内没有改进，停止迭代
+        kps_acc = 0
 
         result = open(os.path.join(exp_dir, opt.backbone + date + "_result.csv"), "w")
         result.write(
@@ -322,9 +323,9 @@ class Trainer:
             # 每100轮迭代输出状态
                 if (total_iterations % opt.test_epoch == 0) or (i == totalSteps - 1):
 
-                    if Val_acc < best_validation_accuracy:  # 如果当前验证集准确率大于之前的最好准确率
-                        best_validation_accuracy = Val_acc  # 更新最好准确率
-                        last_improvement = total_iterations  # 更新上一次提升的迭代轮次
+                    if Val_acc < best_validation_accuracy:
+                        best_validation_accuracy = Val_acc
+                        last_improvement = total_iterations
                         j_num = 0
                         checkpoint_path = os.path.join(self.savePath, 'model')
                         self.saver.save(self.sess, checkpoint_path, global_step=i)
@@ -398,14 +399,14 @@ class Trainer:
                     distances_all, distances_kps = pose_gt.distance_to(pose_pred)
                     distances.append(distances_all)
                     distances_kps_acc.append(distances_kps)
-
-                kps_acc = self.cal_kps_acc(distances_kps_acc)
+                if len(distances_kps_acc) == 13:
+                    kps_acc = self.cal_kps_acc(distances_kps_acc)
                 summary = tf.Summary(value=[tf.Summary.Value(tag="testset_accuracy", simple_value=mean(distances))])
                 Val_acc = mean(distances)
                 print("Model_Folder:{}|--Epoch:{}|--isTrain:{}|--Earlystop:{}|--Train Loss:{}|--Val Acc:{}|--lr:{}".format(
                     str(opt.Model_folder_name),str(i),str(opt.isTrain),str(opt.Early_stopping),train_loss, str(Val_acc)[:4] ,str(cur_lr)))
-
-                result.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
+                if len(kps_acc) == 13:
+                    result.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
                              format(modeltype,opt.isTrain,opt.checkpoints_file,opt.offset,str(config.dataformat), self.inputSize[0],
                                     config.outputSize[0],opt.optimizer,opt.epsilon,opt.momentum,opt.hm_lossselect,opt.epsilon_loss,
                                     opt.w,opt.gaussian_thres, opt.gaussian_sigma,config.datanumber, opt.dataset,opt.totaljoints,i, opt.lr_type,opt.decay_rate,lr,
@@ -413,7 +414,7 @@ class Trainer:
                                     kps_acc[1],kps_acc[2],kps_acc[3],kps_acc[4],kps_acc[5],kps_acc[6],kps_acc[7],kps_acc[8],kps_acc[9],
                                     kps_acc[10],kps_acc[11],kps_acc[12]))
                 self.fileWriter.add_summary(summary, i)
-                self.fileWriter.add_summary(summary, i)
+
 
             if i % Trainer.VIZ_EVERY == 0:
                 inputs, heatmaps = self.dataValProvider[0].drawn()

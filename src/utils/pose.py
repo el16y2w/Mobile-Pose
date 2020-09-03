@@ -79,13 +79,13 @@ class Pose2D:
 
     """Build a 2D pose from a numpy coco ordered content"""
     @staticmethod
-    def build_from_coco(npArray):
+    def build_from_coco(npArray,datatype):
 
-        if opt.dataset == "COCO" or opt.dataset =="YOGA":
+        if datatype == "coco" or datatype =="yoga":
             joints = npArray[Pose2D.FROM_COCO_PERMUTATION, :]
-        elif opt.dataset == "MPII_13":
+        elif datatype == "coco_mpii_13":
             joints = npArray[Pose2D.FROM_MPII_PERMUTATION_13,:]
-        elif opt.dataset == "MPII":
+        elif datatype == "coco_mpii":
             joints = npArray[Pose2D.FROM_MPII_PERMUTATION,:]
         return Pose2D(joints)
 
