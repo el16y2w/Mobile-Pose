@@ -4,9 +4,9 @@ import threading
 import time
 import numpy as np
 
-from src.dataprovider.test.identity_tracker import IdentityTracker
-from src.dataprovider.test.model_factory import ModelFactory
-from src.utils.pose import PoseConfig, Pose2D
+from dataprovider.test.identity_tracker import IdentityTracker
+from dataprovider.test.model_factory import ModelFactory
+from utils.pose import PoseConfig, Pose2D
 
 
 class AnnotatorInterface:
@@ -230,41 +230,40 @@ class AnnotatorInterface:
 
             new_poses_2d, confidences = self.pose_2d_model.predict(image, bboxes, poses_2d)
             confidences = np.array(confidences)
+            if len(new_poses_2d) > 0:
+                for i,pid in enumerate(pids):
+                    curr_persons[pid]['bbox'] = new_poses_2d[i].to_bbox()
+                    curr_persons[pid]['pose_2d'] = new_poses_2d[i]
+                    curr_persons[pid]['confidence'] = confidences[i]
+
+                # update the annotations in the scope of the class
+                with self.persons_lock:
+
+                    for curr_person in curr_persons.values():
+
+                        # a person['id'] could be removed and a new person could added with the same label
+                        is_same_person = curr_person['id'] in self.persons and self.persons[curr_person['id']]['hash'] == curr_person['hash']
+
+                        # if possible add a bit of smoothing between predictions
+
+                        if is_same_person and self.persons[curr_person['id']]['pose_2d'] is not None:
+
+                            smoothed_joints_2d = 0.85 * curr_person['pose_2d'].get_joints() \
+                                                 + 0.15 * self.persons[curr_person['id']]['pose_2d'].get_joints()
+
+                            # note 2d joints are smoothed twice (todo)
+
+                            smoothed_confidence = 0.85 * curr_person['confidence'] + 0.15 * self.persons[curr_person['id']]['confidence']
+
+                            curr_person['pose_2d'] = Pose2D(smoothed_joints_2d)
+                            curr_person['confidence'] = smoothed_confidence
 
 
-            for i,pid in enumerate(pids):
-                curr_persons[pid]['bbox'] = new_poses_2d[i].to_bbox()
-                curr_persons[pid]['pose_2d'] = new_poses_2d[i]
-                curr_persons[pid]['confidence'] = confidences[i]
+                        curr_person['bbox'] = curr_person['pose_2d'].to_bbox()
 
-            # update the annotations in the scope of the class
-            with self.persons_lock:
-
-                for curr_person in curr_persons.values():
-
-                    # a person['id'] could be removed and a new person could added with the same label
-                    is_same_person = curr_person['id'] in self.persons and self.persons[curr_person['id']]['hash'] == curr_person['hash']
-
-                    # if possible add a bit of smoothing between predictions
-
-                    if is_same_person and self.persons[curr_person['id']]['pose_2d'] is not None:
-
-                        smoothed_joints_2d = 0.85 * curr_person['pose_2d'].get_joints() \
-                                             + 0.15 * self.persons[curr_person['id']]['pose_2d'].get_joints()
-
-                        # note 2d joints are smoothed twice (todo)
-
-                        smoothed_confidence = 0.85 * curr_person['confidence'] + 0.15 * self.persons[curr_person['id']]['confidence']
-
-                        curr_person['pose_2d'] = Pose2D(smoothed_joints_2d)
-                        curr_person['confidence'] = smoothed_confidence
-
-
-                    curr_person['bbox'] = curr_person['pose_2d'].to_bbox()
-
-                    # does not update a people removed in between by the threaded routine
-                    if is_same_person:
-                        self.persons[curr_person['id']] = curr_person
+                        # does not update a people removed in between by the threaded routine
+                        if is_same_person:
+                            self.persons[curr_person['id']] = curr_person
 
 
         self.last_image = image

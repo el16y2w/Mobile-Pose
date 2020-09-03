@@ -3,12 +3,11 @@
     Original paper: 'Squeeze-and-Excitation Networks,' https://arxiv.org/abs/1709.01507.
 """
 
-
-import os
 import math
 import tensorflow as tf
 from .common import conv1x1_block, conv3x3_block, maxpool2d, se_block, is_channels_first, flatten
 from src.models.outputlayer import finallayerforoffsetoption
+
 
 def senet_bottleneck(x,
                      in_channels,

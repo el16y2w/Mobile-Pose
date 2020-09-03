@@ -1,6 +1,6 @@
 from math import sqrt
 from src.utils.pose import PoseConfig
-
+from opt import opt
 """
 Hide stranger people present in the hero's subject bbox
 """
@@ -80,10 +80,18 @@ class BodyCover:
             if sum(pose.get_active_joints()) <= 3:
                 continue
 
-            is_req_hide = pose.is_active_joint(PoseConfig.L_SHOULDER)
-            is_req_hide = is_req_hide and pose.is_active_joint(PoseConfig.R_SHOULDER)
-            is_req_hide = is_req_hide and pose.is_active_joint(PoseConfig.L_HIP)
-            is_req_hide = is_req_hide and pose.is_active_joint(PoseConfig.R_HIP)
+            if opt.dataset == "COCO" or opt.dataset =="YOGA":
+                is_req_hide = pose.is_active_joint(PoseConfig.L_SHOULDER)
+                is_req_hide = is_req_hide and pose.is_active_joint(PoseConfig.R_SHOULDER)
+                is_req_hide = is_req_hide and pose.is_active_joint(PoseConfig.L_HIP)
+                is_req_hide = is_req_hide and pose.is_active_joint(PoseConfig.R_HIP)
+            elif opt.dataset == "MPII":
+                is_req_hide = pose.is_active_joint(PoseConfig.MPIIl_shoulder)
+                is_req_hide = is_req_hide and pose.is_active_joint(PoseConfig.MPIIr_shoulder)
+                is_req_hide = is_req_hide and pose.is_active_joint(PoseConfig.MPIIl_hip)
+                is_req_hide = is_req_hide and pose.is_active_joint(PoseConfig.MPIIr_hip)
+            else:
+                raise ValueError("Your dataset name is wrong")
 
             if not is_req_hide:
                 continue
@@ -93,8 +101,17 @@ class BodyCover:
             joints[:, 0] *= image.shape[1]
             joints[:, 1] *= image.shape[0]
             joints = joints.astype(int)
-            lshoulder, rshoulder = joints[PoseConfig.L_SHOULDER, :], joints[PoseConfig.R_SHOULDER, :]
-            lhip, rhip = joints[PoseConfig.L_HIP, :], joints[PoseConfig.R_HIP, :]
+
+            if opt.dataset == "COCO" or opt.dataset =="YOGA":
+                lshoulder, rshoulder = joints[PoseConfig.L_SHOULDER, :], joints[PoseConfig.R_SHOULDER, :]
+                lhip, rhip = joints[PoseConfig.L_HIP, :], joints[PoseConfig.R_HIP, :]
+                joint_Id = PoseConfig.HEAD
+            elif opt.dataset == "MPII":
+                lshoulder, rshoulder = joints[PoseConfig.MPIIl_shoulder, :], joints[PoseConfig.MPIIr_shoulder, :]
+                lhip, rhip = joints[PoseConfig.MPIIl_hip, :], joints[PoseConfig.MPIIr_hip, :]
+                joint_Id = PoseConfig.MPIIhead_top
+            else:
+                raise ValueError("Your dataset name is wrong")
 
             size = max(self.distance(lhip, rshoulder), self.distance(lshoulder, rhip))
             size = int(0.25 * size)
@@ -108,7 +125,7 @@ class BodyCover:
                     float(center_y) / image.shape[0])
 
                 has_to_be_hide = (center_x >= 0 and center_y >= 0)
-                has_to_be_hide = has_to_be_hide and ((not is_stranger_joint_over_subject) or jointId == PoseConfig.HEAD)
+                has_to_be_hide = has_to_be_hide and ((not is_stranger_joint_over_subject) or jointId == joint_Id)
 
                 if has_to_be_hide:
                     min_x, max_x = center_x - size // 2, center_x + size // 2

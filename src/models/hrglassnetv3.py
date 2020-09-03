@@ -1,6 +1,6 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-
+from opt import opt
 from src.models.network_base import max_pool, upsample, inverted_bottleneck, separable_conv, convb, is_trainable
 
 out_channel_ratio = lambda d: int(d * 1.0)
@@ -10,7 +10,7 @@ l2s = []
 
 
 class HourGlassNet:
-    def __init__(self, is4Train=True, stageNum=4, totalJoints=13):
+    def __init__(self, is4Train=True, stageNum=4, totalJoints=opt.totaljoints):
         is_trainable(is4Train)
         self.input = tf.placeholder(tf.float32, shape=(None, 256, 256, 3), name='Image')
         net = convb(self.input, 3, 3, out_channel_ratio(16), 2, name="Conv2d_0")

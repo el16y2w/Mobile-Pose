@@ -1,5 +1,6 @@
+
 import tensorflow as tf
-import tensorflow.contrib.slim as slim
+
 import src.models.efficientnet.lite.efficientnet_lite_builder as efficientnet_lite_builder
 from src.models.outputlayer import finallayerforoffsetoption
 class EfficientNetLite1:

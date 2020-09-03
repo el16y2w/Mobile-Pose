@@ -1,11 +1,11 @@
-from Config import config
+from opt import opt
 import tensorflow as tf
 import src.models.efficientnet.lite.efficientnet_lite_builder as efficientnet_lite_builder
 from src.models.Layerprovider import LayerProvider
 from src.models.outputlayer import finallayerforoffsetoption
 class EfficientNetLite0:
 
-    def __init__(self, shape,is4Train=True,model_name = "efficientnet-lite0", totalJoints=13,offset = config.offset):
+    def __init__(self, shape,is4Train=True,model_name = "efficientnet-lite0", totalJoints=opt.totaljoints,offset = opt.offset):
         self.offset = offset
         tf.reset_default_graph()# 利用这个可清空default graph以及nodes
 

@@ -3,11 +3,11 @@ import os
 import numpy as np
 from src.utils.body_cover import BodyCover
 from src.utils.pose import Pose2D, PoseConfig
-from Config import config
+from opt import opt
 
 class Pose2DInterface:
 
-    def __init__(self, session, protograph, post_processing, input_size, subject_padding, input_node_name, output_node_name,offsetornot=config.offset):
+    def __init__(self, session, protograph, post_processing, input_size, subject_padding, input_node_name, output_node_name,offsetornot=opt.offset):
 
         os.environ['CUDA_VISIBLE_DEVICES'] = '0'
         self.offsetornot = offsetornot
@@ -46,7 +46,7 @@ class Pose2DInterface:
     resulting output in the pose 2D. (defined for the post_processing attribute in the init method)
     """
     @staticmethod
-    def our_approach_postprocessing(network_out, subject_bbox, input_size,offsetornot=config.offset):
+    def our_approach_postprocessing(network_out, subject_bbox, input_size, offsetornot=opt.offset):
         total_joints = PoseConfig.get_total_joints()
         if offsetornot == True:
 

@@ -1,6 +1,6 @@
 from src.utils.bbox import BBox
 import numpy as np
-
+from opt import opt
 
 """
 Pose configuration
@@ -8,29 +8,53 @@ Pose configuration
 class PoseConfig():
 
     # The joint order defined by the system
+    if opt.dataset == "COCO" or opt.dataset == "YOGA":
+        NAMES = ["head", "leftShoulder", "rightShoulder", "leftElbow", "rightElbow", "leftWrist", "rightWrist", "leftHip",
+                 "rightHip", "leftKnee", "rightKnee", "leftAnkle", "rightAnkle"]
 
-    NAMES = ["head", "leftShoulder", "rightShoulder", "leftElbow", "rightElbow", "leftWrist", "rightWrist", "leftHip",
-             "rightHip", "leftKnee", "rightKnee", "leftAnkle", "rightAnkle"]
+        HEAD, L_SHOULDER, R_SHOULDER, L_ELBOW, R_ELBOW, L_WRIST, R_WRIST = 0, 1, 2, 3, 4, 5, 6
+        L_HIP, R_HIP, L_KNEE, R_KNEE, L_ANKLE, R_ANKLE = 7, 8, 9, 10, 11, 12
 
-    HEAD, L_SHOULDER, R_SHOULDER, L_ELBOW, R_ELBOW, L_WRIST, R_WRIST = 0, 1, 2, 3, 4, 5, 6
-    L_HIP, R_HIP, L_KNEE, R_KNEE, L_ANKLE, R_ANKLE = 7, 8, 9, 10, 11, 12
+        # The available bones
+        BONES = [(1, 3), (3, 5), (2, 4), (4, 6), (7, 9), (9, 11), (8, 10), (10, 12), (7,8), (1,2), (1,7), (2,8)]
+        MPIIBONES_13 = [(0, 1), (1, 2), (12, 11), (11, 10), (5, 4), (4, 3), (13, 14),(14, 15), (6, 7)]
 
+    elif opt.dataset == "MPII":
+    #for mpii
+        MPIINAMES =  ["r_ankle", "r_knee", "r_hip",
+                      "l_hip", "l_knee", "l_ankle",
+                      "pelvis", "throax",
+                      "upper_neck", "head_top",
+                      "r_wrist", "r_elbow", "r_shoulder",
+                      "l_shoulder", "l_elbow", "l_wrist"]
 
-    # The available bones
+        MPIIBONES =  [(0, 1),(1, 2),(2, 6),(7, 12),(12, 11), (11, 10),(5, 4),(4, 3),(3, 6),(7, 13),(13, 14),(14, 15),(6, 7),
+                      (7, 8),(8, 9)]
+        MPIIr_ankle,MPIIr_knee,MPIIr_hip,MPIIl_hip,MPIIl_knee,MPIIl_ankle, MPIIpelvis,MPIIthroax = 0,1,2,3,4,5,6,7
+        MPIIupper_neck,MPIIhead_top,MPIIr_wrist,MPIIr_elbow,MPIIr_shoulder,MPIIl_shoulder,MPIIl_elbow,MPIIl_wrist = 8,9,10,11,12,13,14,15
 
-    BONES = [(1, 3), (3, 5), (2, 4), (4, 6), (7, 9), (9, 11), (8, 10), (10, 12), (7,8), (1,2), (1,7), (2,8)]
+    else:
+        raise ValueError("Your dataset name is wrong")
 
     """Return the total number of joints """
     @staticmethod
     def get_total_joints():
-        return len(PoseConfig.NAMES)
+        if opt.dataset == "COCO" or opt.dataset =="YOGA" :
+            return len(PoseConfig.NAMES)
+        elif opt.dataset == "MPII":
+            return len(PoseConfig.MPIINAMES)
+        else:
+            raise ValueError("Your dataset name is wrong")
 
     """Return the total number of bones """
     @staticmethod
     def get_total_bones():
-        return len(PoseConfig.BONES)
-
-
+        if opt.dataset == "COCO" or opt.dataset =="YOGA":
+            return len(PoseConfig.BONES)
+        elif opt.dataset == "MPII":
+            return len(PoseConfig.MPIIBONES)
+        else:
+            raise ValueError("Your dataset name is wrong")
 
 
 
@@ -39,10 +63,9 @@ Wrap a 2D pose (numpy array of size <PoseConfig.get_total_joints(),2> )
 """
 class Pose2D:
 
-
     # The joints isn't in the same order in the differents datasets
-
-    FROM_MPII_PERMUTATION = [9, 13, 12, 14, 11, 15, 10, 3, 2, 4, 1, 5, 0]
+    FROM_MPII_PERMUTATION = [0,1,2,3,4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    FROM_MPII_PERMUTATION_13 = [9, 13, 12, 14, 11, 15, 10, 3, 2, 4, 1, 5, 0]
     FROM_COCO_PERMUTATION = [0, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
     FROM_COCO2_PERMUTATION = [0, 4, 1, 5, 2, 6, 3, 10, 7, 11, 8, 12, 9]
     TO_HUMAN_36_PERMUTATION = [8, 10, 12, 7, 9, 11, 0, 1, 3, 5, 2, 4, 6]
@@ -68,7 +91,10 @@ class Pose2D:
     @staticmethod
     def build_from_coco(npArray):
 
-        joints = npArray[Pose2D.FROM_COCO_PERMUTATION, :]
+        if opt.dataset == "COCO" or opt.dataset =="YOGA":
+            joints = npArray[Pose2D.FROM_COCO_PERMUTATION, :]
+        elif opt.dataset == "MPII":
+            joints = npArray[Pose2D.FROM_MPII_PERMUTATION,:]
 
         return Pose2D(joints)
 
@@ -94,15 +120,17 @@ class Pose2D:
 
 
     def distance_to(self, that):
-
-        mask_1 = that.get_active_joints()
-        mask_2 = self.get_active_joints()
-        mask = mask_1 & mask_2
+        if opt.dataset == "YOGA" or opt.dataset=="COCO":
+            mask_1 = that.get_active_joints()
+            mask_2 = self.get_active_joints()
+            mask = mask_1 & mask_2
+        elif opt.dataset == "MPII":
+            mask = [True,True,True,True,True,True,True,True,True,True,True,True,True,True,True,True]
 
         j1 = self.get_joints()[mask,:]
         j2 = that.get_joints()[mask, :]
 
-        return np.sqrt(((j1 -j2)**2).sum(1)).mean(),np.sqrt(((j1 -j2)**2).sum(1))
+        return np.sqrt(((j1 -j2)**2).sum(1)).mean(), np.sqrt(((j1 -j2)**2).sum(1))
 
     def get_gravity_center(self):
         return self.joints[self.is_active_mask, :].mean(0)

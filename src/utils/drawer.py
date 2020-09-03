@@ -1,6 +1,6 @@
 import cv2
 from src.utils.pose import Pose2D, PoseConfig
-
+from opt import opt
 
 """
 Draw annotation over an image
@@ -28,8 +28,12 @@ class Drawer:
     def draw_2d_pose(img, pose_2d, thickness=2):
 
         img = img.copy()
-
-        bones = PoseConfig.BONES
+        if opt.dataset == "COCO" or opt.dataset =="YOGA" :
+            bones = PoseConfig.BONES
+        elif opt.dataset == "MPII":
+            bones = PoseConfig.MPIIBONES
+        else:
+            raise ValueError("Your dataset name is wrong")
 
         joints = pose_2d.get_joints()
 
@@ -95,8 +99,15 @@ class Drawer:
             # The person id is written on the gravity center
 
             tmp = poses_2d[pid].get_gravity_center()
-            tmp[0] = (tmp[0]+poses_2d[pid].get_joints()[PoseConfig.HEAD, 0])/2.0
-            tmp[1] = (tmp[1]+poses_2d[pid].get_joints()[PoseConfig.HEAD, 1])/2.0
+
+            if opt.dataset == "COCO" or opt.dataset =="YOGA":
+                tmp[0] = (tmp[0]+poses_2d[pid].get_joints()[PoseConfig.HEAD, 0])/2.0
+                tmp[1] = (tmp[1]+poses_2d[pid].get_joints()[PoseConfig.HEAD, 1])/2.0
+            elif opt.dataset == "MPII":
+                tmp[0] = (tmp[0] + poses_2d[pid].get_joints()[PoseConfig.MPIIhead_top, 0]) / 2.0
+                tmp[1] = (tmp[1] + poses_2d[pid].get_joints()[PoseConfig.MPIIhead_top, 1]) / 2.0
+            else:
+                raise ValueError("Your dataset name is wrong")
 
             x, y = int(tmp[0]*img.shape[1]), int(tmp[1]*img.shape[0])
             keypoints.append(x)

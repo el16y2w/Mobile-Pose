@@ -8,7 +8,7 @@ import tensorflow as tf
 from .common import conv1x1, conv3x3, depthwise_conv3x3, batchnorm, channel_shuffle, maxpool2d, avgpool2d,\
     is_channels_first, get_channel_axis, flatten, hswish
 from src.models.outputlayer import finallayerforoffsetoption
-
+from opt import opt
 
 
 def shuffle_unit(x,
@@ -78,7 +78,7 @@ def shuffle_unit(x,
     x = depthwise_conv3x3(
         x=x,
         channels=mid_channels,
-        strides=(1 if downsample else 1),
+        strides=(2 if downsample else 1),#2
         data_format=data_format,
         name=name + "/dw_conv2")
     x = batchnorm(
@@ -104,7 +104,7 @@ def shuffle_unit(x,
         identity = avgpool2d(
             x=identity,
             pool_size=3,
-            strides=1,
+            strides=2,#2
             padding=1,
             data_format=data_format,
             name=name + "/avgpool")
@@ -270,7 +270,7 @@ class ShuffleNet(object):
 
     def __call__(self,
                  x,
-                 training=True):
+                 training=opt.isTrain):
         """
         Build a model graph.
 
@@ -310,7 +310,6 @@ class ShuffleNet(object):
                     data_format=self.data_format,
                     name="features/stage{}/unit{}".format(i + 1, j + 1))
                 in_channels = out_channels
-
 
 
         return x
@@ -372,7 +371,10 @@ class Shufflenetget:
             groups=groups)
 
         net = net(self.inputImage)
-        self.output = outputlayer.fornetworks(net, 13)
+        self.output = outputlayer.fornetworks_DUC(net, 13)
+
+
+
 
 
     def getInput(self):
@@ -382,3 +384,25 @@ class Shufflenetget:
         return self.output
 
 
+
+#     return get_shufflenet(groups=1, width_scale=1.0, model_name="shufflenet_g1_w1", **kwargs)
+#
+#     return get_shufflenet(groups=2, width_scale=1.0, model_name="shufflenet_g2_w1", **kwargs)
+#
+#     return get_shufflenet(groups=3, width_scale=1.0, model_name="shufflenet_g3_w1", **kwargs)
+#
+#     return get_shufflenet(groups=4, width_scale=1.0, model_name="shufflenet_g4_w1", **kwargs)
+#
+#     return get_shufflenet(groups=8, width_scale=1.0, model_name="shufflenet_g8_w1", **kwargs)
+#
+#     return get_shufflenet(groups=1, width_scale=0.75, model_name="shufflenet_g1_w3d4", **kwargs)
+#
+#     return get_shufflenet(groups=3, width_scale=0.75, model_name="shufflenet_g3_w3d4", **kwargs)
+#
+#     return get_shufflenet(groups=1, width_scale=0.5, model_name="shufflenet_g1_wd2", **kwargs)
+#
+#     return get_shufflenet(groups=3, width_scale=0.5, model_name="shufflenet_g3_wd2", **kwargs)
+#
+#     return get_shufflenet(groups=1, width_scale=0.25, model_name="shufflenet_g1_wd4", **kwargs)
+#
+#     return get_shufflenet(groups=3, width_scale=0.25, model_name="shufflenet_g3_wd4", **kwargs)

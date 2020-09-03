@@ -3,8 +3,8 @@ import os
 import cv2
 import numpy as np
 
-from src.utils.body_cover import BodyCover
-from src.utils.pose import Pose2D, PoseConfig
+from utils.body_cover import BodyCover
+from utils.pose import Pose2D, PoseConfig
 import config
 
 
@@ -14,7 +14,7 @@ class Pose2DInterface:
 
     def __init__(self, session, protograph, post_processing, input_size, subject_padding, input_node_name, output_node_name):
 
-        os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+        os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 
         with tf.gfile.GFile(protograph, "rb") as f:
             restored_graph_def = tf.GraphDef()
@@ -104,7 +104,7 @@ class Pose2DInterface:
             outX = pixId % heatmap.shape[1]
             outY = pixId // heatmap.shape[1]
 
-            if config.offset ==True:
+            if config.offset == True:
                 x = outX / heatmap.shape[1] * input_size + xOff[outY, outX, jointId]
                 y = outY / heatmap.shape[0] * input_size + yOff[outY, outX, jointId]
             else:
@@ -120,7 +120,6 @@ class Pose2DInterface:
 
 
         return Pose2D(joints).to_absolute_coordinate_from(subject_bbox), confidences
-
 
 
 

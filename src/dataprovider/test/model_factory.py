@@ -1,7 +1,7 @@
 import tensorflow as tf
-from src.dataprovider.pose_2d.interface import Pose2DInterface
-from src.dataprovider.object_detection.interface import YoloInterface
-from Config import config
+from dataprovider.pose_2d.interface import Pose2DInterface
+from dataprovider.object_detection.interface import YoloInterface
+import config
 
 """
 Provide an instantiated model interface containing a method "predict" used for the inference.

@@ -420,7 +420,7 @@ def conv2d(x,
         assert (dilation[0] == 1) and (dilation[1] == 1)
         kernel = tf.compat.v1.get_variable(
             name=name + "/dw_kernel",
-            shape=kernel_size + (in_channels,1), #shape=kernel_size + (in_channels, 1),
+            shape=kernel_size + (in_channels, 1),
             initializer=tf.keras.initializers.VarianceScaling(2.0))
         x = tf.nn.depthwise_conv2d(
             input=x,

@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import random
-from Config import config
+from opt import opt
 
 class DataAdaptator:
 
@@ -29,19 +29,23 @@ class DataAdaptator:
     def size(self):
         return len(self.active_ids)
 
-
-    def get_image(self):
-
-        img = self.coco.get_image(self.img_id)
-        if config.grayimage == True:
-            if len(img.shape) == 3:
-                img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-                img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-
-        if len(img.shape) == 2:
-            img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-
-        return img
+    # def get_image(self):
+    #
+    #     img = self.coco.get_image(self.img_id)
+    #
+    #     if len(img.shape) == 2:
+    #         img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+    #
+    #     if len(img.shape) ==3:
+    #         image = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    #         img = np.array(image)
+    #         img_tensor = tf.convert_to_tensor(img)
+    #         img_tensor = tf.image.grayscale_to_rgb(img_tensor)
+    #         sess = tf.Session()
+    #         img = sess.run(img_tensor)
+    #
+    #
+    #     return img
 
     def get_pose(self, entryId):
         return self.coco.get_poses(self.img_id)[self.active_ids[entryId]]
@@ -54,13 +58,16 @@ class DataAdaptator:
 
         poses = self.coco.get_poses(self.img_id)
         image = self.coco.get_image(self.img_id)
-        if config.grayimage == True:
-            if len(image.shape) == 3:
+
+        if opt.grayimage == True:
+            if len(image.shape)  == 3:
                 image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-                image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+                image = cv2.cvtColor(image,cv2.COLOR_GRAY2RGB)
 
         if len(image.shape) == 2:
             image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+        #fake rgb image the number of channels equal to 3
+
 
         if not isinstance(self.data_augment, type(None)):
             image, poses = self.data_augment.apply(image, poses)

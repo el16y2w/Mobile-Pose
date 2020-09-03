@@ -2,27 +2,42 @@ from src.utils.pose import Pose2D, PoseConfig
 import random
 import cv2
 import numpy as np
-
+from opt import opt
 
 class DataAugmentation:
 
 
     def __init__(self):
-
-        self.sym_permutation = [i for i in range(len(PoseConfig.NAMES))]
-        self.sym_permutation[PoseConfig.L_SHOULDER] = PoseConfig.R_SHOULDER
-        self.sym_permutation[PoseConfig.R_SHOULDER] = PoseConfig.L_SHOULDER
-        self.sym_permutation[PoseConfig.L_ELBOW] = PoseConfig.R_ELBOW
-        self.sym_permutation[PoseConfig.R_ELBOW] = PoseConfig.L_ELBOW
-        self.sym_permutation[PoseConfig.L_WRIST] = PoseConfig.R_WRIST
-        self.sym_permutation[PoseConfig.R_WRIST] = PoseConfig.L_WRIST
-        self.sym_permutation[PoseConfig.L_HIP] = PoseConfig.R_HIP
-        self.sym_permutation[PoseConfig.R_HIP] = PoseConfig.L_HIP
-        self.sym_permutation[PoseConfig.R_KNEE] = PoseConfig.L_KNEE
-        self.sym_permutation[PoseConfig.L_KNEE] = PoseConfig.R_KNEE
-        self.sym_permutation[PoseConfig.L_ANKLE] = PoseConfig.R_ANKLE
-        self.sym_permutation[PoseConfig.R_ANKLE] = PoseConfig.L_ANKLE
-
+        if opt.dataset == "COCO" or opt.dataset =="YOGA":
+            self.sym_permutation = [i for i in range(len(PoseConfig.NAMES))]
+            self.sym_permutation[PoseConfig.L_SHOULDER] = PoseConfig.R_SHOULDER
+            self.sym_permutation[PoseConfig.R_SHOULDER] = PoseConfig.L_SHOULDER
+            self.sym_permutation[PoseConfig.L_ELBOW] = PoseConfig.R_ELBOW
+            self.sym_permutation[PoseConfig.R_ELBOW] = PoseConfig.L_ELBOW
+            self.sym_permutation[PoseConfig.L_WRIST] = PoseConfig.R_WRIST
+            self.sym_permutation[PoseConfig.R_WRIST] = PoseConfig.L_WRIST
+            self.sym_permutation[PoseConfig.L_HIP] = PoseConfig.R_HIP
+            self.sym_permutation[PoseConfig.R_HIP] = PoseConfig.L_HIP
+            self.sym_permutation[PoseConfig.R_KNEE] = PoseConfig.L_KNEE
+            self.sym_permutation[PoseConfig.L_KNEE] = PoseConfig.R_KNEE
+            self.sym_permutation[PoseConfig.L_ANKLE] = PoseConfig.R_ANKLE
+            self.sym_permutation[PoseConfig.R_ANKLE] = PoseConfig.L_ANKLE
+        elif opt.dataset == "MPII":
+            self.sym_permutation = [i for i in range(len(PoseConfig.MPIINAMES))]
+            self.sym_permutation[PoseConfig.MPIIl_shoulder] = PoseConfig.MPIIr_shoulder
+            self.sym_permutation[PoseConfig.MPIIr_shoulder] = PoseConfig.MPIIl_shoulder
+            self.sym_permutation[PoseConfig.MPIIl_elbow] = PoseConfig.MPIIr_elbow
+            self.sym_permutation[PoseConfig.MPIIr_elbow] = PoseConfig.MPIIl_elbow
+            self.sym_permutation[PoseConfig.MPIIl_wrist] = PoseConfig.MPIIr_wrist
+            self.sym_permutation[PoseConfig.MPIIr_wrist] = PoseConfig.MPIIl_wrist
+            self.sym_permutation[PoseConfig.MPIIl_hip] = PoseConfig.MPIIr_hip
+            self.sym_permutation[PoseConfig.MPIIr_hip] = PoseConfig.MPIIl_hip
+            self.sym_permutation[PoseConfig.MPIIr_knee] = PoseConfig.MPIIl_knee
+            self.sym_permutation[PoseConfig.MPIIl_knee] = PoseConfig.MPIIr_knee
+            self.sym_permutation[PoseConfig.MPIIl_ankle] = PoseConfig.MPIIr_ankle
+            self.sym_permutation[PoseConfig.MPIIr_ankle] = PoseConfig.MPIIl_ankle
+        else:
+            raise ValueError("Your dataset name is wrong")
 
 
     def apply(self, image, poses):
@@ -62,8 +77,6 @@ class DataAugmentation:
 
 
     def _distort_image(self, image):
-
-
         image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
         image = image.astype(np.float32)
 

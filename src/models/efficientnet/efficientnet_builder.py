@@ -27,7 +27,7 @@ import six
 import tensorflow.compat.v1 as tf
 
 from . import efficientnet_model
-import src.utils
+
 MEAN_RGB = [0.485 * 255, 0.456 * 255, 0.406 * 255]
 STDDEV_RGB = [0.229 * 255, 0.224 * 255, 0.225 * 255]
 

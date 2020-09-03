@@ -22,6 +22,7 @@ class GauDataProviderAdaptator:
         self.th = opt.gaussian_thres
         self.sigma = opt.gaussian_sigma
         self.offset =offset
+        self.debug()
 
     def put_heatmap(self, heatmap, plane_idx, center, sigma):
         center_x, center_y = center
@@ -52,8 +53,13 @@ class GauDataProviderAdaptator:
     def decodePoses(self, outputs):
 
         poses = []
+        if opt.dataset == "COCO" or opt.dataset == "YOGA" :
+            totalJoints = len(PoseConfig.NAMES)
+        elif opt.dataset == "MPII":
+            totalJoints = len(PoseConfig.MPIINAMES)
+        else:
+            raise ValueError("Your dataset name is wrong")
 
-        totalJoints = len(PoseConfig.NAMES)
         for recordId in range(outputs.shape[0]):
             if self.offset == True:
                 heatmap = outputs[recordId, :, :, :totalJoints]
@@ -103,8 +109,14 @@ class GauDataProviderAdaptator:
             joints = np.minimum(joints, 0.99999)
 
             heatmaps = []
+            if opt.dataset == "COCO" or opt.dataset =="YOGA":
+                totalJoints = len(PoseConfig.NAMES)
+            elif opt.dataset == "MPII":
+                totalJoints = len(PoseConfig.MPIINAMES)
+            else:
+                raise ValueError("Your dataset name is wrong")
 
-            for jointId in range(len(PoseConfig.NAMES)):
+            for jointId in range(totalJoints):
                 center=[]
 
                 x, y = int(joints[jointId, 0] * self.outputSize[0]), int(joints[jointId, 1] * self.outputSize[1])
@@ -139,8 +151,13 @@ class GauDataProviderAdaptator:
             joints = np.minimum(joints, 0.99999)
 
             heatmaps, xOffsets, yOffsets = [], [], []
-
-            for jointId in range(len(PoseConfig.NAMES)):
+            if opt.dataset == "COCO" or opt.dataset =="YOGA":
+                totalJoints = len(PoseConfig.NAMES)
+            elif opt.dataset == "MPII":
+                totalJoints = len(PoseConfig.MPIINAMES)
+            else:
+                raise ValueError("Your dataset name is wrong")
+            for jointId in range(totalJoints):
                 center = []
                 x, y = int(joints[jointId, 0] * self.outputSize[0]), int(joints[jointId, 1] * self.outputSize[1])
                 center.append(x)
@@ -192,7 +209,7 @@ class GauDataProviderAdaptator:
         poses = self.decodePoses(outputs)
 
         for recordId in range(inputs.shape[0]):
-            for i in range(len(PoseConfig.NAMES)):
+            for i in range(opt.totaljoints):
                 isOk = outputs[recordId, :, :, i].sum() == 1
 
             img = (((inputs[recordId, :, :, :] + 1) / 2) * 255).astype(np.uint8)

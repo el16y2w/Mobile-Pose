@@ -1,15 +1,14 @@
 import tensorflow as tf
 from src.models.outputlayer import finallayerforoffsetoption
-from Config import config
-if config.activate_function == 'relu':
+from opt import opt
+if opt.activate_function == "swish":
+    from src.models.Layerprovider1 import LayerProvider
+elif opt.activate_function == "relu":
     from src.models.Layerprovider import LayerProvider
-elif config.activate_function == 'swish':
-    from src.models.Layerprovider_swish import LayerProvider
-
 
 class PoseNet:
 
-    def __init__(self, shape,is4Train=True, mobilenetVersion=0.75, totalJoints=13, offset = config.offset):
+    def __init__(self, shape,is4Train=True, mobilenetVersion=0.75, totalJoints=opt.totaljoints, offset = opt.offset):
         self.offset = offset
 
         tf.reset_default_graph()# 利用这个可清空default graph以及nodes

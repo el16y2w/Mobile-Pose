@@ -10,24 +10,24 @@ from __future__ import print_function
 
 import tensorflow as tf
 from src.models.outputlayer import finallayerforoffsetoption
-from Config import config
+from opt import opt
 from src.models import Layerprovider
 
 
 
 class PoseNetv3:
-    def __init__(self, inputshape,is4Train , multiplier = 1, totalJoints = 13, size = config.v3_version,  reuse = None):
+    def __init__(self, inputshape,is4Train , multiplier = 1, totalJoints = opt.totaljoints, size = opt.v3_version,  reuse = None):
         end_points = {}
         outputlayer = finallayerforoffsetoption()
         self.inputImage = tf.placeholder(tf.float32, shape=inputshape, name='Image')
         if size == 'small':
             layers = [
-                [16, 16, 3, 2, "RE", True, 16],
+                [16, 16, 3, 2, "RE", False, 16],
                 [16, 24, 3, 2, "RE", False, 72],
                 [24, 24, 3, 1, "RE", False, 88],
-                [24, 40, 5, 2, "RE", True, 96],
-                [40, 40, 5, 1, "RE", True, 240],
-                [40, 40, 5, 1, "RE", True, 240],
+                [24, 40, 5, 2, "RE", False, 96],
+                [40, 40, 5, 1, "RE", False, 240],
+                [40, 40, 5, 1, "RE", False, 240],
                 [40, 48, 5, 1, "HS", True, 120],
                 [48, 48, 5, 1, "HS", True, 144],
                 [48, 96, 5, 2, "HS", True, 288],
@@ -94,8 +94,3 @@ class PoseNetv3:
 
 if __name__ == "__main__":
     print("begin ...")
-    # input_test = tf.zeros([1, 224, 224, 3])
-    # num_classes = 1000
-    # model, end_points = mobilenet_v3_large(input_test, num_classes, multiplier=1.0, is_training=True, reuse=None)
-    # # model, end_points = mobilenet_v3_small(input_test, num_classes, multiplier=1.0, is_training=True, reuse=None)
-    # print("done !")
