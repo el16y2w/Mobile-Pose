@@ -53,12 +53,8 @@ class GauDataProviderAdaptator:
     def decodePoses(self, outputs):
 
         poses = []
-        if opt.dataset == "COCO" or opt.dataset == "YOGA" :
-            totalJoints = len(PoseConfig.NAMES)
-        elif opt.dataset == "MPII":
-            totalJoints = len(PoseConfig.MPIINAMES)
-        else:
-            raise ValueError("Your dataset name is wrong")
+
+        totalJoints = opt.totaljoints
 
         for recordId in range(outputs.shape[0]):
             if self.offset == True:
@@ -109,14 +105,8 @@ class GauDataProviderAdaptator:
             joints = np.minimum(joints, 0.99999)
 
             heatmaps = []
-            if opt.dataset == "COCO" or opt.dataset =="YOGA":
-                totalJoints = len(PoseConfig.NAMES)
-            elif opt.dataset == "MPII":
-                totalJoints = len(PoseConfig.MPIINAMES)
-            else:
-                raise ValueError("Your dataset name is wrong")
 
-            for jointId in range(totalJoints):
+            for jointId in range(opt.totaljoints):
                 center=[]
 
                 x, y = int(joints[jointId, 0] * self.outputSize[0]), int(joints[jointId, 1] * self.outputSize[1])
@@ -151,13 +141,8 @@ class GauDataProviderAdaptator:
             joints = np.minimum(joints, 0.99999)
 
             heatmaps, xOffsets, yOffsets = [], [], []
-            if opt.dataset == "COCO" or opt.dataset =="YOGA":
-                totalJoints = len(PoseConfig.NAMES)
-            elif opt.dataset == "MPII":
-                totalJoints = len(PoseConfig.MPIINAMES)
-            else:
-                raise ValueError("Your dataset name is wrong")
-            for jointId in range(totalJoints):
+
+            for jointId in range(opt.totaljoints):
                 center = []
                 x, y = int(joints[jointId, 0] * self.outputSize[0]), int(joints[jointId, 1] * self.outputSize[1])
                 center.append(x)

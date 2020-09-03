@@ -112,14 +112,8 @@ class Trainer:
     #     return tf.nn.l2_loss(pred - gt, name=lossName)
 
     def posenetLoss_nooffset(gt, pred, lossName, batchSize):
-        if opt.dataset == "COCO" or opt.dataset =="YOGA" :
-            predHeat, gtHeat = pred[:, :, :, :len(PoseConfig.NAMES)], gt[:, :, :, :len(PoseConfig.NAMES)]
-            totaljoints = len(PoseConfig.NAMES)
-        elif opt.dataset == "MPII":
-            predHeat, gtHeat = pred[:, :, :, :len(PoseConfig.MPIINAMES)], gt[:, :, :, :len(PoseConfig.MPIINAMES)]
-            totaljoints = len(PoseConfig.MPIINAMES)
-        else:
-            raise ValueError("Your dataset name is wrong")
+        predHeat, gtHeat = pred[:, :, :, :opt.totaljoints], gt[:, :, :, :opt.totaljoints]
+        totaljoints = opt.totaljoints
 
         if opt.hm_lossselect == 'l2':
             heatmapLoss = tf.nn.l2_loss(predHeat - gtHeat, name=lossName + "_heatmapLoss")
@@ -148,25 +142,11 @@ class Trainer:
         return heatmapLoss
 
     def posenetLoss(gt, pred, lossName, batchSize):
-        if opt.dataset == "COCO" or opt.dataset =="YOGA":
-            predHeat, gtHeat = pred[:, :, :, :len(PoseConfig.NAMES)], gt[:, :, :, :len(PoseConfig.NAMES)]
-            predOffX, gtOffX = pred[:, :, :, len(PoseConfig.NAMES):(2 * len(PoseConfig.NAMES))], gt[:, :, :,
-                                                                                                len(PoseConfig.NAMES):(
-                                                                                                       2 * len(
-                                                                                                         PoseConfig.NAMES))]
-            predOffY, gtOffY = pred[:, :, :, (2 * len(PoseConfig.NAMES)):], gt[:, :, :, (2 * len(PoseConfig.NAMES)):]
-            totaljoints = len(PoseConfig.NAMES)
-        elif opt.dataset == "MPII":
-            predHeat, gtHeat = pred[:, :, :, :len(PoseConfig.MPIINAMES)], gt[:, :, :, :len(PoseConfig.MPIINAMES)]
-            predOffX, gtOffX = pred[:, :, :, len(PoseConfig.MPIINAMES):(2 * len(PoseConfig.MPIINAMES))], gt[:, :, :,
-                                                                                                len(PoseConfig.MPIINAMES):(
-                                                                                                       2 * len(
-                                                                                                         PoseConfig.MPIINAMES))]
-            predOffY, gtOffY = pred[:, :, :, (2 * len(PoseConfig.MPIINAMES)):], gt[:, :, :, (2 * len(PoseConfig.MPIINAMES)):]
-            totaljoints = len(PoseConfig.MPIINAMES)
-        else:
-            raise ValueError("Your dataset name is wrong")
-
+        predHeat, gtHeat = pred[:, :, :, :opt.totaljoints], gt[:, :, :, :opt.totaljoints]
+        predOffX, gtOffX = pred[:, :, :, opt.totaljoints:(2 * opt.totaljoints)], gt[:, :, :, opt.totaljoints:(
+                                                                                                     2 * opt.totaljoints)]
+        predOffY, gtOffY = pred[:, :, :, (2 * opt.totaljoints):], gt[:, :, :, (2 * opt.totaljoints):]
+        totaljoints = opt.totaljoints
         if opt.hm_lossselect == 'l2':
             heatmapLoss = tf.nn.l2_loss(predHeat - gtHeat, name=lossName + "_heatmapLoss")
         elif opt.hm_lossselect == 'wing':
@@ -222,12 +202,8 @@ class Trainer:
 
 
     def _toPose(self, output):
-        if opt.dataset == "COCO" or opt.dataset =="YOGA":
-            totalJoints = len(PoseConfig.NAMES)
-        elif opt.dataset == "MPII":
-            totalJoints = len(PoseConfig.MPIINAMES)
-        else:
-            raise ValueError("Your dataset name is wrong")
+
+        totalJoints = opt.totaljoints
 
         if self.offsetornot == True:
             heatmap = output[:, :, :totalJoints]

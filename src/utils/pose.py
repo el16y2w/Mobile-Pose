@@ -39,12 +39,7 @@ class PoseConfig():
     """Return the total number of joints """
     @staticmethod
     def get_total_joints():
-        if opt.dataset == "COCO" or opt.dataset =="YOGA" :
-            return len(PoseConfig.NAMES)
-        elif opt.dataset == "MPII":
-            return len(PoseConfig.MPIINAMES)
-        else:
-            raise ValueError("Your dataset name is wrong")
+        return opt.totaljoints
 
     """Return the total number of bones """
     @staticmethod
