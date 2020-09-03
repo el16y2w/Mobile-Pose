@@ -5,7 +5,6 @@ import random
 import numpy as np
 from src.dataprovider.cocoInterface import CocoInterface, CocoInterfaceyoga
 from src.utils.pose import Pose2D
-from src.utils.pose import PoseConfig
 import matplotlib.pyplot as plt
 from src.utils.drawer import Drawer
 import math

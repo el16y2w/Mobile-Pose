@@ -80,7 +80,7 @@ class BodyCover:
             if sum(pose.get_active_joints()) <= 3:
                 continue
 
-            if opt.dataset == "COCO" or opt.dataset =="YOGA":
+            if opt.dataset == "COCO" or opt.dataset =="YOGA" or opt.dataset =="MPII_13":
                 is_req_hide = pose.is_active_joint(PoseConfig.L_SHOULDER)
                 is_req_hide = is_req_hide and pose.is_active_joint(PoseConfig.R_SHOULDER)
                 is_req_hide = is_req_hide and pose.is_active_joint(PoseConfig.L_HIP)
@@ -102,7 +102,7 @@ class BodyCover:
             joints[:, 1] *= image.shape[0]
             joints = joints.astype(int)
 
-            if opt.dataset == "COCO" or opt.dataset =="YOGA":
+            if opt.dataset == "COCO" or opt.dataset =="YOGA" or opt.dataset =="MPII_13":
                 lshoulder, rshoulder = joints[PoseConfig.L_SHOULDER, :], joints[PoseConfig.R_SHOULDER, :]
                 lhip, rhip = joints[PoseConfig.L_HIP, :], joints[PoseConfig.R_HIP, :]
                 joint_Id = PoseConfig.HEAD

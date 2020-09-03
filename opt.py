@@ -13,10 +13,10 @@ tf.app.flags.DEFINE_integer("VIZ_EVERY", 10, "tensorboard viz")
 
 tf.app.flags.DEFINE_string("Model_folder_name", 'A_0', "Model_folder_name")
 
-tf.app.flags.DEFINE_boolean("Early_stopping",True,"early stop or not")
+tf.app.flags.DEFINE_boolean("Early_stopping",False,"early stop or not")
 tf.app.flags.DEFINE_boolean('isTrain', True, 'trainable or not')
 tf.app.flags.DEFINE_boolean('isTrainpre',True,'if pre train,set false')
-tf.app.flags.DEFINE_boolean('offset', False, 'offset')
+tf.app.flags.DEFINE_boolean('offset', True, 'offset')
 
 tf.app.flags.DEFINE_string("backbone", 'mobilenetv2', "backbone:mobilenetv1/mobilenetv2"
                                                       "/mobilenetv3/hourglass/efficientnet")
@@ -28,8 +28,8 @@ tf.app.flags.DEFINE_string("train_all_result", 'Result/trash', "model name")
 
 
 "----------------------------- Data options -----------------------------"
-tf.app.flags.DEFINE_string("dataset",'MPII',"choose data format:MPII/COCO/YOGA")
-tf.app.flags.DEFINE_integer("totaljoints", 16, "MPII16/COCO13/YOGA13")
+tf.app.flags.DEFINE_string("dataset",'MPII_13',"choose data format:MPII_13/MPII/COCO/YOGA")
+tf.app.flags.DEFINE_integer("totaljoints", 13, "MPII16/MPII_13/COCO13/YOGA13")
 
 tf.app.flags.DEFINE_integer("inputResH", 224, "Input image height")
 tf.app.flags.DEFINE_integer("inputResW", 224, "Input image width")

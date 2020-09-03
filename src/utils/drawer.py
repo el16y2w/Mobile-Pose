@@ -28,7 +28,7 @@ class Drawer:
     def draw_2d_pose(img, pose_2d, thickness=2):
 
         img = img.copy()
-        if opt.dataset == "COCO" or opt.dataset =="YOGA" :
+        if opt.dataset == "COCO" or opt.dataset =="YOGA"or opt.dataset =="MPII_13" :
             bones = PoseConfig.BONES
         elif opt.dataset == "MPII":
             bones = PoseConfig.MPIIBONES

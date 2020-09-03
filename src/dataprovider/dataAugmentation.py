@@ -8,7 +8,7 @@ class DataAugmentation:
 
 
     def __init__(self):
-        if opt.dataset == "COCO" or opt.dataset =="YOGA":
+        if opt.dataset == "COCO" or opt.dataset =="YOGA" or opt.dataset == "MPII_13":
             self.sym_permutation = [i for i in range(len(PoseConfig.NAMES))]
             self.sym_permutation[PoseConfig.L_SHOULDER] = PoseConfig.R_SHOULDER
             self.sym_permutation[PoseConfig.R_SHOULDER] = PoseConfig.L_SHOULDER
@@ -66,10 +66,7 @@ class DataAugmentation:
 
         return image
 
-
-
     # def _rand_scale(self, s):
-    #
     #     scale = random.uniform(1, s)
     #     if (random.randint(1, 10000) % 2):
     #         return scale
@@ -86,13 +83,9 @@ class DataAugmentation:
             else:
                 image[:, :, 2] = image[:, :, 2] * (0.4 + 0.60 * random.random())
 
-
         image = np.clip(image, 0, 255)
-
         image = image.astype(np.uint8)
-
         image = cv2.cvtColor(image, cv2.COLOR_HSV2RGB)
-
         image = self.random_subsample(image)
 
         return image
