@@ -6,7 +6,7 @@ json_dir = 'img/tree.json'
 
 #Train model
 #select data
-dataformat = ['coco_human36']#coco_mpii_13,coco_mpii_16,yoga,coco
+dataformat = ['coco_ochuman']#coco_mpii_13,coco_mpii_16,yoga,coco
 datanumber = 1 #multiple
 dataset_comment = "coco_ochuman"
 
@@ -19,9 +19,9 @@ dataset_comment = "coco_ochuman"
 # efficientnet : inputsize(224,224), output size(56,56)
 
 #data prepare
-train_annotFile = "img/ochuman/ochuman.json"
+train_annotFile = "img/ochuman/ochuman_coco_format_test_range_0.00_1.00.json"
 train_imageDir = "img/ochuman/images"
-test_annotFile = "img/ochuman/ochuman.json"
+test_annotFile = "img/ochuman/ochuman_coco_format_test_range_0.00_1.00.json"
 test_imageDir = "img/ochuman/images"
 # train_annotFile = "img/mpiitrain.json"
 # train_imageDir = ""

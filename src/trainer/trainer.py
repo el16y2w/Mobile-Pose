@@ -1,8 +1,9 @@
 from src.utils.drawer import Drawer
 from src.utils.pose import Pose2D
-from src.utils.pose import PoseConfig
+from src.utils.Earlystop import earlystop
 from src.utils.bbox import BBox
 from src.utils.interface import Pose2DInterface
+from src.utils.LR import exponential_decay,polynomial_decay,inverse_time_decay
 from statistics import mean
 import numpy as np
 import os
@@ -278,12 +279,13 @@ class Trainer:
 
     def start(self, fromStep, totalSteps, lr, modeltype, date):
         total_iterations = 0
-        best_validation_accuracy = 1  # 当前最佳验证集准确率
+        best_validation_accuracy = 1
         last_improvement = 0  # 上一次有所改进的轮次
         cur_lr = lr
         j_num = 0
         require_improvement = opt.require_improvement  # 如果在1000轮内没有改进，停止迭代
-        kps_acc = 0
+        kps_acc = [0]
+        Val_acc = 0
 
         result = open(os.path.join(exp_dir, opt.backbone + date + "_result.csv"), "w")
         result.write(
@@ -335,23 +337,15 @@ class Trainer:
                         if j_num <opt.j_min : pass
                         else:
                             if opt.lr_type == "exponential_decay":
-                                lr = cur_lr * opt.decay_rate
+                                lr = exponential_decay(cur_lr)
                             elif opt.lr_type == "polynomial_decay":
-                                global_step = min(i, 1000)
-                                lr = (cur_lr - 0.00001) * (1 - global_step / 1000) + 0.00001
-                                '''
-                                global_step = min(global_step, decay_steps)
-                                decayed_learning_rate = (learning_rate - end_learning_rate) *
-                                                        (1 - global_step / decay_steps) ^ (power) +
-                                                         end_learning_rate
-                                '''
-                            # elif opt.lr_type == "natural_exp_decay":
-                            #     lr = cur_lr * tf.math.exp(-opt.decay_rate * i)
+                                lr = polynomial_decay(i,cur_lr)
                             elif opt.lr_type == "inverse_time_decay":
-                                lr = cur_lr / (1 + opt.decay_rate * i / 1000)
+                                lr = inverse_time_decay(i,cur_lr)
                             else:
                                 raise ValueError("Your lr_type name is wrong")
                             cur_lr = lr
+
                 # 如果在require_improvement轮次内未有提升
                 if total_iterations - last_improvement > require_improvement or j_num > opt.j_max:
                     result_all.write(
@@ -365,7 +359,7 @@ class Trainer:
                                opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss, best_validation_accuracy,
                                config.dataset_comment))
                     print("Stop optimization")
-                    break  # 跳出循环
+                    break
 
             else:
                 if i % Trainer.SAVE_EVERY == 0:

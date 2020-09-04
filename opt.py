@@ -13,7 +13,7 @@ tf.app.flags.DEFINE_integer("VIZ_EVERY", 10, "tensorboard viz")
 
 tf.app.flags.DEFINE_string("Model_folder_name", 'A_0', "Model_folder_name")
 
-tf.app.flags.DEFINE_boolean("Early_stopping",False,"early stop or not")
+tf.app.flags.DEFINE_boolean("Early_stopping",True,"early stop or not")
 tf.app.flags.DEFINE_boolean('isTrain', True, 'trainable or not')
 tf.app.flags.DEFINE_boolean('isTrainpre',True,'if pre train,set false')
 tf.app.flags.DEFINE_boolean('offset', True, 'offset')
@@ -43,7 +43,7 @@ tf.app.flags.DEFINE_boolean('grayimage', False, 'image type')
 
 "----------------------------- Hyperparameter options -----------------------------"
 #lr
-tf.app.flags.DEFINE_string("lr_type", "natural_exp_decay","exponential_decay|polynomial_decay|natural_exp_decay|inverse_time_decay")
+tf.app.flags.DEFINE_string("lr_type", "natural_exp_decay","exponential_decay|polynomial_decay|inverse_time_decay")
 tf.app.flags.DEFINE_float("lr", 0.001, "learning rate")
 tf.app.flags.DEFINE_float("decay_rate", 0.98, "learning rate decay rate")
 tf.app.flags.DEFINE_integer("decay_steps", 5000, "learning rate decay steps")
