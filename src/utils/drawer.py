@@ -28,7 +28,7 @@ class Drawer:
     def draw_2d_pose(img, pose_2d, thickness=2):
 
         img = img.copy()
-        if opt.dataset == "COCO" or opt.dataset =="YOGA"or opt.dataset =="MPII_13" :
+        if opt.totaljoints == 13 :
             bones = PoseConfig.BONES
         elif opt.dataset == "MPII":
             bones = PoseConfig.MPIIBONES
@@ -100,7 +100,7 @@ class Drawer:
 
             tmp = poses_2d[pid].get_gravity_center()
 
-            if opt.dataset == "COCO" or opt.dataset =="YOGA":
+            if opt.totaljoints == 13:
                 tmp[0] = (tmp[0]+poses_2d[pid].get_joints()[PoseConfig.HEAD, 0])/2.0
                 tmp[1] = (tmp[1]+poses_2d[pid].get_joints()[PoseConfig.HEAD, 1])/2.0
             elif opt.dataset == "MPII":

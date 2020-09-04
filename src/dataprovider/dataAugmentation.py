@@ -8,7 +8,7 @@ class DataAugmentation:
 
 
     def __init__(self):
-        if opt.dataset == "COCO" or opt.dataset =="YOGA" or opt.dataset == "MPII_13":
+        if opt.totaljoints == 13:
             self.sym_permutation = [i for i in range(len(PoseConfig.NAMES))]
             self.sym_permutation[PoseConfig.L_SHOULDER] = PoseConfig.R_SHOULDER
             self.sym_permutation[PoseConfig.R_SHOULDER] = PoseConfig.L_SHOULDER

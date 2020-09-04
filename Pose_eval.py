@@ -11,13 +11,14 @@ import cv2
 import os
 import math
 import time
-from dataprovider.test.interface import AnnotatorInterface
-import config
+from src.dataprovider.test.interface import AnnotatorInterface
+from opt import opt
+
 
 class poseevalpckh:
     def __init__(self):
-        self.anno = json.load(open(config.Groundtru_annojson))
-        self.testimg_path = config.testimg_path
+        self.anno = json.load(open(opt.Groundtru_annojson))
+        self.testimg_path = opt.testing_path
 
     def eval(self,modelpath,inputsize):
         print("Total test example=%d" % len(self.anno['images']))
@@ -72,7 +73,7 @@ class poseevalpckh:
         return use_times, "PCKh=%.2f" % (np.mean(scores) * 100)
 
 
-    def infer(img_path, model, inputsize,images_anno, shape = config.evalmodelshape):
+    def infer(img_path, model, inputsize,images_anno, shape = (224,224)):
         annotator = AnnotatorInterface.build(model,inputsize,max_persons=1)
         res = {}
 
@@ -104,7 +105,7 @@ class poseevalpckh:
 
 
 if __name__ == '__main__':
-    dataset = config.testdataset
+    dataset = opt.testdataset
     inputsize = 224#config.modelinputseze[0]
     modelpath = './poseval/models/224/'
     resultpath = './poseval/results/'

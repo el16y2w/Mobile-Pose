@@ -5,7 +5,7 @@ from utils.drawer import Drawer
 import time
 import os
 import json
-from opt import opt
+import config
 
 
 
@@ -20,7 +20,7 @@ Keep holding the backspace key to speed the video 30x
 
 def start_video(movie_path, max_persons):
 
-    annotator = AnnotatorInterface.build(model =  opt.testmodel,inputsize = opt.modelinputsize,max_persons=max_persons)
+    annotator = AnnotatorInterface.build(max_persons=max_persons)
 
     cap = cv2.VideoCapture(movie_path)
 
@@ -58,8 +58,8 @@ def start_video(movie_path, max_persons):
 
 class image_detection:
     def __init__(self,src_folder,dest_folder, max_persons):
-        self.model = opt.testmodel
-        self.inputsize = opt.modelinputsize
+        self.model = config.testmodel
+        self.inputsize = config.modelinputseze[0]
         self.src_img_ls = [os.path.join(src_folder, img_name) for img_name in os.listdir(src_folder)]
         self.dest_img_ls = [os.path.join(dest_folder, img_name) for img_name in os.listdir(src_folder)]
         self.annotator = AnnotatorInterface.build(self.model,self.inputsize,max_persons=max_persons)
@@ -119,19 +119,19 @@ class image_detection:
 if __name__ == "__main__":
     print("start frontend")
     #for webcame or video
-    max_persons = 1
-    default_media = 0
-    cam_num = 0
-    video = 'test3.mp4'
-    start_video(cam_num, max_persons)
+    # max_persons = 1
+    # default_media = 0
+    # cam_num = 0
+    # video = 'test3.mp4'
+    # start_video(video, max_persons)
 
     #for output json
-    # max_persons = 1
-    # src_folder = 'testdata/moveitval'
-    # dest_folder = src_folder + "_kps"
-    # os.makedirs(dest_folder, exist_ok=True)
-    # image_detection(src_folder, dest_folder,max_persons).process()
-    # print('end')
+    max_persons = 1
+    src_folder = 'testdata/moveitval'
+    dest_folder = src_folder + "_kps"
+    os.makedirs(dest_folder, exist_ok=True)
+    image_detection(src_folder, dest_folder,max_persons).process()
+    print('end')
 
 
 

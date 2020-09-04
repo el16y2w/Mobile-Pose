@@ -7,7 +7,7 @@ Pose configuration
 """
 class PoseConfig():
     # The joint order defined by the system
-    if opt.dataset == "COCO" or opt.dataset == "YOGA" or opt.dataset == "MPII_13":
+    if opt.totaljoints == 13:
         NAMES = ["head", "leftShoulder", "rightShoulder", "leftElbow", "rightElbow", "leftWrist", "rightWrist", "leftHip",
                  "rightHip", "leftKnee", "rightKnee", "leftAnkle", "rightAnkle"]
 
@@ -15,7 +15,6 @@ class PoseConfig():
         L_HIP, R_HIP, L_KNEE, R_KNEE, L_ANKLE, R_ANKLE = 7, 8, 9, 10, 11, 12
         # The available bones
         BONES = [(1, 3), (3, 5), (2, 4), (4, 6), (7, 9), (9, 11), (8, 10), (10, 12), (7,8), (1,2), (1,7), (2,8)]
-
 
     elif opt.dataset == "MPII":
     #for mpii
@@ -26,7 +25,6 @@ class PoseConfig():
                       (7, 8),(8, 9)]
         MPIIr_ankle,MPIIr_knee,MPIIr_hip,MPIIl_hip,MPIIl_knee,MPIIl_ankle, MPIIpelvis,MPIIthroax = 0,1,2,3,4,5,6,7
         MPIIupper_neck,MPIIhead_top,MPIIr_wrist,MPIIr_elbow,MPIIr_shoulder,MPIIl_shoulder,MPIIl_elbow,MPIIl_wrist = 8,9,10,11,12,13,14,15
-
 
     else:
         raise ValueError("Your dataset name is wrong")
@@ -40,7 +38,7 @@ class PoseConfig():
     """Return the total number of bones """
     @staticmethod
     def get_total_bones():
-        if opt.dataset == "COCO" or opt.dataset =="YOGA":
+        if opt.totaljoints == 13:
             return len(PoseConfig.BONES)
         elif opt.dataset == "MPII":
             return len(PoseConfig.MPIIBONES)
@@ -52,14 +50,16 @@ class PoseConfig():
 Wrap a 2D pose (numpy array of size <PoseConfig.get_total_joints(),2> )
 """
 class Pose2D:
-
+    # HEAD,L_SHOULDER, R_SHOULDER, L_ELBOW, R_ELBOW, L_WRIST, R_WRIST,L_HIP, R_HIP, L_KNEE, R_KNEE, L_ANKLE, R_ANKLE,
     # The joints isn't in the same order in the differents datasets
     FROM_MPII_PERMUTATION = [0,1,2,3,4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
     FROM_MPII_PERMUTATION_13 = [9, 13, 12, 14, 11, 15, 10, 3, 2, 4, 1, 5, 0]
     FROM_COCO_PERMUTATION = [0, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-    FROM_COCO2_PERMUTATION = [0, 4, 1, 5, 2, 6, 3, 10, 7, 11, 8, 12, 9]
+    FROM_CROWDPOSE_PERMUTATION = [12, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    FROM_OCHUMAN_PERMUTATION = [0, 5, 6, 7, 8, 9, 10 ,11, 12, 13, 14, 15, 16]
     TO_HUMAN_36_PERMUTATION = [8, 10, 12, 7, 9, 11, 0, 1, 3, 5, 2, 4, 6]
-    #FROM_POSE2D_PERMUTATION = [0, 5, 2, 6, 3, 7, 4, 11, 8, 12, 9, 13, 10]
+    # FROM_COCO2_PERMUTATION = [0, 4, 1, 5, 2, 6, 3, 10, 7, 11, 8, 12, 9]
+    # FROM_POSE2D_PERMUTATION = [0, 5, 2, 6, 3, 7, 4, 11, 8, 12, 9, 13, 10]
 
 
     def __init__(self, npArray):
@@ -87,6 +87,15 @@ class Pose2D:
             joints = npArray[Pose2D.FROM_MPII_PERMUTATION_13,:]
         elif datatype == "coco_mpii":
             joints = npArray[Pose2D.FROM_MPII_PERMUTATION,:]
+        elif datatype == "coco_crowd":
+            joints = npArray[Pose2D.FROM_CROWDPOSE_PERMUTATION,:]
+        elif datatype == "coco_ochuman":
+            joints = npArray[Pose2D.FROM_OCHUMAN_PERMUTATION,:]
+        elif datatype == "coco_human36":
+            joints = npArray[Pose2D.TO_HUMAN_36_PERMUTATION,:]
+        else:
+            raise ValueError("Your dataset name is wrong")
+
         return Pose2D(joints)
 
 
@@ -109,7 +118,7 @@ class Pose2D:
 
 
     def distance_to(self, that):
-        if opt.dataset == "YOGA" or opt.dataset=="COCO" or opt.dataset == "MPII_13":
+        if opt.totaljoints == 13:
             mask_1 = that.get_active_joints()
             mask_2 = self.get_active_joints()
             mask = mask_1 & mask_2

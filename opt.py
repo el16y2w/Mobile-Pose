@@ -28,7 +28,7 @@ tf.app.flags.DEFINE_string("train_all_result", 'Result/YogaposeD', "model name")
 
 
 "----------------------------- Data options -----------------------------"
-tf.app.flags.DEFINE_boolean("checkanno", False,"check annotation")
+tf.app.flags.DEFINE_boolean("checkanno", True,"check annotation")
 
 tf.app.flags.DEFINE_string("dataset",'MPII_13',"choose data format:MPII_13/MPII/COCO/YOGA")
 tf.app.flags.DEFINE_integer("totaljoints", 13, "MPII16/MPII_13/COCO13/YOGA13")
