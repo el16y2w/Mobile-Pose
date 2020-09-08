@@ -14,7 +14,7 @@ class PoseConfig():
         HEAD, L_SHOULDER, R_SHOULDER, L_ELBOW, R_ELBOW, L_WRIST, R_WRIST = 0, 1, 2, 3, 4, 5, 6
         L_HIP, R_HIP, L_KNEE, R_KNEE, L_ANKLE, R_ANKLE = 7, 8, 9, 10, 11, 12
         # The available bones
-        BONES = [(1, 3), (3, 5), (2, 4), (4, 6), (7, 9), (9, 11), (8, 10), (10, 12), (7,8), (1,2), (1,7), (2,8)]
+        BONES = [(1, 3), (3, 5), (2, 4), (4, 6), (7, 9), (9, 11), (8, 10), (10, 12), (1,2), (1,7), (2,8)]
 
     elif opt.dataset == "MPII":
     #for mpii
@@ -128,7 +128,7 @@ class Pose2D:
         j1 = self.get_joints()[mask,:]
         j2 = that.get_joints()[mask, :]
 
-        return np.sqrt(((j1 -j2)**2).sum(1)).mean(), np.sqrt(((j1 -j2)**2).sum(1))
+        return np.sqrt(((j1 -j2)**2).sum(1)).mean(), np.sqrt(((self.get_joints() -that.get_joints())**2).sum(1)) ,mask
 
     def get_gravity_center(self):
         return self.joints[self.is_active_mask, :].mean(0)

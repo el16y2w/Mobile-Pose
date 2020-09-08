@@ -1,6 +1,5 @@
 from src.utils.drawer import Drawer
 from src.utils.pose import Pose2D
-from src.utils.Earlystop import earlystop
 from src.utils.bbox import BBox
 from src.utils.interface import Pose2DInterface
 from src.utils.LR import exponential_decay,polynomial_decay,inverse_time_decay
@@ -14,8 +13,12 @@ from src.utils.loss import wing_loss
 from src.utils.loss import adaptivewingLoss
 from src.utils.loss import smooth_l1_loss
 from Config import config_cmd as config
+from src.utils.AUC_eval import AUC
+from src.utils.Pose_eval import pose_eval
 
 exp_dir = os.path.join("Result/{}/{}".format(opt.modeloutputFile, opt.Model_folder_name))
+auc = AUC()
+pose_eval = pose_eval()
 
 class Trainer:
     SAVE_EVERY = opt.SAVE_EVERY
@@ -25,7 +28,6 @@ class Trainer:
 
     def __init__(self, inputImage, output, outputStages, dataTrainProvider, dataValProvider, modelDir, lossFunc,
                  inputSize,datatpye,offsetset , time,sess=None):
-
         self.inputSize = inputSize
         self.dataTrainProvider, self.dataValProvider = dataTrainProvider, dataValProvider
         self.inputImage = inputImage
@@ -266,16 +268,6 @@ class Trainer:
             average_grads.append(grad_and_var)
         return average_grads
 
-    def cal_kps_acc(self,kps_acc):
-        value = []
-        acc = []
-        j = 0
-        for i in range(len(kps_acc[j])):
-            for item in kps_acc:
-                value.append(item[i])
-            acc.append(mean(value))
-            j = j+1
-        return acc
 
     def start(self, fromStep, totalSteps, lr, modeltype, date):
         total_iterations = 0
@@ -291,8 +283,8 @@ class Trainer:
         result.write(
             "model_name,isTrain,checkpoints_file,offset,traindata,inputsize,outputsize,optimizer,opt_epilon,momentum,heatmaploss, epsilon_loss, "
             "loss_w,Gauthreshold, GauSigma, datasetnumber,Dataset,Totaljoints,epochs, learning_type,decayrate,learning-rate, require_improvement,j_min,j_max,test_epoch,"
-            "training_time,train_loss, val_acc,head, "
-            "lShoulder, rShoulder, lElbow, rElbow, lWrist, rWrist, lHip,rHip, lKnee, rKnee, lAnkle, rAnkle\n")
+            "training_time,train_loss, val_acc,auc_all,head,auc_head,lShoulder,auc_lShoulder, rShoulder,auc_rShoulder, lElbow,auc_lElbow, "
+            "rElbow,auc_rElbow, lWrist,auc_lWrist, rWrist,auc_rWrist, lHip,auc_lHip, rHip,auc_rHip, lKnee,auc_lKnee, rKnee,auc_rKnee, lAnkle,auc_lAnkle, rAnkle,auc_rAnkle\n")
         result.close()
         if os.path.exists("Result/Yogapose" + '/' + "training_result.csv"):
             pass
@@ -322,9 +314,7 @@ class Trainer:
             train_loss = str(res[0])
 
             if opt.Early_stopping:
-            # 每100轮迭代输出状态
                 if (total_iterations % opt.test_epoch == 0) or (i == totalSteps - 1):
-
                     if Val_acc < best_validation_accuracy:
                         best_validation_accuracy = Val_acc
                         last_improvement = total_iterations
@@ -369,44 +359,44 @@ class Trainer:
 
             if i % Trainer.TEST_EVERY == 0:
                 inputs, heatmaps = self.dataValProvider[0].drawn()
-
                 res = self.sess.run([self.output, self.summaryMerge],
                                     feed_dict={self.inputImage: inputs, self.heatmapGT: heatmaps, self.learningRate: 0})
-
                 fullscreen_bbox = BBox(0, 1, 0, 1)
 
-                distances = []
-                distances_kps_acc = []
                 for batch_id in range(inputs.shape[0]):
-                    pose_gt, _ = Pose2DInterface.our_approach_postprocessing(heatmaps[batch_id, :, :, :],
+                    pose_gt, confidence_gt = Pose2DInterface.our_approach_postprocessing(heatmaps[batch_id, :, :, :],
                                                                              fullscreen_bbox, self.inputSize)
-                    pose_pred, _ = Pose2DInterface.our_approach_postprocessing(res[0][batch_id, :, :, :],
+                    pose_pred, confidence_pred = Pose2DInterface.our_approach_postprocessing(res[0][batch_id, :, :, :],
                                                                                fullscreen_bbox, self.inputSize)
-
                     # pose_pred
                     # all labeled gt joints are used in the loss,
                     # if not detected by the prediction joint location (-1,-1) => (0.5,0.5)
                     tmp = pose_pred.get_joints()
                     tmp[~pose_pred.get_active_joints(), :] = 0.5
-                    pose_pred = Pose2D(tmp)
 
-                    distances_all, distances_kps = pose_gt.distance_to(pose_pred)
-                    distances.append(distances_all)
-                    distances_kps_acc.append(distances_kps)
-                if len(distances_kps_acc) == 13:
-                    kps_acc = self.cal_kps_acc(distances_kps_acc)
+                    auc.auc_append(confidence_gt, confidence_pred)
+                    pose_pred = Pose2D(tmp)
+                    distances = pose_eval.save_value(pose_gt,pose_pred)
+
+                kps_acc = pose_eval.cal_eval()
+                auc_all = auc.auc_cal_all()
                 summary = tf.Summary(value=[tf.Summary.Value(tag="testset_accuracy", simple_value=mean(distances))])
                 Val_acc = mean(distances)
-                print("Model_Folder:{}|--Epoch:{}|--isTrain:{}|--Earlystop:{}|--Train Loss:{}|--Val Acc:{}|--lr:{}".format(
-                    str(opt.Model_folder_name),str(i),str(opt.isTrain),str(opt.Early_stopping),train_loss, str(Val_acc)[:4] ,str(cur_lr)))
-                if len(kps_acc) == 13:
-                    result.write("{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
-                             format(modeltype,opt.isTrain,opt.checkpoints_file,opt.offset,str(config.dataformat), self.inputSize[0],
-                                    config.outputSize[0],opt.optimizer,opt.epsilon,opt.momentum,opt.hm_lossselect,opt.epsilon_loss,
-                                    opt.w,opt.gaussian_thres, opt.gaussian_sigma,config.datanumber, opt.dataset,opt.totaljoints,i, opt.lr_type,opt.decay_rate,lr,
-                                    opt.require_improvement,opt.j_min,opt.j_max,opt.test_epoch,training_time,train_loss, Val_acc,kps_acc[0],
-                                    kps_acc[1],kps_acc[2],kps_acc[3],kps_acc[4],kps_acc[5],kps_acc[6],kps_acc[7],kps_acc[8],kps_acc[9],
-                                    kps_acc[10],kps_acc[11],kps_acc[12]))
+                print("Model_Folder:{}|--Epoch:{}|--isTrain:{}|--Earlystop:{}|--Train Loss:{}|--Val Acc:{}|--AUC:{}|--lr:{}".format(
+                    str(opt.Model_folder_name),str(i),str(opt.isTrain),str(opt.Early_stopping),train_loss, str(Val_acc)[:4],str(auc_all)[:4] ,str(cur_lr)))
+
+                auc_head,auc_leftShoulder, auc_rightShoulder, auc_leftElbow, auc_rightElbow, auc_leftWrist,\
+                auc_rightWrist, auc_leftHip, auc_rightHip, auc_leftKnee, auc_rightKnee, auc_leftAnkle, auc_rightAnkle = auc.auc_cal()
+                result.write(
+                    "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}"
+                    ",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
+                    format(modeltype, opt.isTrain, opt.checkpoints_file, opt.offset, str(config.dataformat),
+                           self.inputSize[0],config.outputSize[0], opt.optimizer, opt.epsilon, opt.momentum, opt.hm_lossselect,
+                           opt.epsilon_loss,opt.w, opt.gaussian_thres, opt.gaussian_sigma, config.datanumber, opt.dataset,
+                           opt.totaljoints, i, opt.lr_type, opt.decay_rate, lr,opt.require_improvement, opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss,
+                           Val_acc, auc_all, kps_acc[0], auc_head,kps_acc[1], auc_leftShoulder, kps_acc[2], auc_rightShoulder, kps_acc[3], auc_leftElbow,
+                           kps_acc[4], auc_rightElbow, kps_acc[5], auc_leftWrist,kps_acc[6], auc_rightWrist, kps_acc[7], auc_leftHip, kps_acc[8], auc_rightHip, kps_acc[9],
+                           auc_leftKnee, kps_acc[10], auc_rightKnee,kps_acc[11], auc_leftAnkle, kps_acc[12], auc_rightAnkle))
                 self.fileWriter.add_summary(summary, i)
 
 
@@ -414,7 +404,6 @@ class Trainer:
                 inputs, heatmaps = self.dataValProvider[0].drawn()
                 res = self.sess.run([self.output, self.summaryMerge],
                                     feed_dict={self.inputImage: inputs, self.heatmapGT: heatmaps, self.learningRate: 0})
-
                 currHeatmaps = res[0][0, :, :, :]
                 currImage = self._imageFeatureToImage(inputs[0, :, :, :])
                 currHeatmapViz = self._heatmapVisualisation(currHeatmaps)

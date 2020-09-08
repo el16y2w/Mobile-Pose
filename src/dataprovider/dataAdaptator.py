@@ -7,8 +7,7 @@ class DataAdaptator:
 
 
 
-    def __init__(self, coco, img_id, input_size, padding, jitter, mask=None, body_cover=None,
-                 data_augment=None):
+    def __init__(self, coco, img_id, input_size, padding, jitter, mask, body_cover,data_augment):
 
         self.coco, self.img_id = coco, img_id
 

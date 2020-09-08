@@ -223,7 +223,7 @@ class GauDataProviderAdaptator:
 class DataProvider:
 
 
-    def __init__(self, coco, input_size, batch_size, padding, jitter, mask=None, body_cover=None, data_augment=None):
+    def __init__(self, coco, input_size, batch_size, padding, jitter, mask, body_cover=None, data_augment=None):
 
         self.adapted_datas = []
 
@@ -274,8 +274,11 @@ class DataProvider:
                 datatype == 'coco_crowd' or datatype == 'coco_ochuman' or datatype == 'coco_human36':
             coco = CocoInterface.build(cocoAnnotFile, cocoImgDir,datatype)
 
-        if datatype == 'yoga':
+        elif datatype == 'yoga':
             coco = CocoInterfaceyoga.build(cocoAnnotFile, cocoImgDir,datatype)
+
+        else:
+            raise ValueError("Your dataformat name is wrong")
 
         mask = DataProvider.active_pose_mask(coco)
 

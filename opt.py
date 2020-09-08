@@ -7,13 +7,13 @@ FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_integer("batch", 8, "batch size")
 tf.app.flags.DEFINE_integer("epoch", 150000, "Current epoch")
 tf.app.flags.DEFINE_integer("fromStep", 0, "Initial epoch")
-tf.app.flags.DEFINE_integer("SAVE_EVERY", 10, "tensorboard save")
+tf.app.flags.DEFINE_integer("SAVE_EVERY", 50, "tensorboard save")
 tf.app.flags.DEFINE_integer("TEST_EVERY", 1, "tensorboard test")
-tf.app.flags.DEFINE_integer("VIZ_EVERY", 10, "tensorboard viz")
+tf.app.flags.DEFINE_integer("VIZ_EVERY", 20, "tensorboard viz")
 
 tf.app.flags.DEFINE_string("Model_folder_name", 'A_0', "Model_folder_name")
 
-tf.app.flags.DEFINE_boolean("Early_stopping",True,"early stop or not")
+tf.app.flags.DEFINE_boolean("Early_stopping",False,"early stop or not")
 tf.app.flags.DEFINE_boolean('isTrain', True, 'trainable or not')
 tf.app.flags.DEFINE_boolean('isTrainpre',True,'if pre train,set false')
 tf.app.flags.DEFINE_boolean('offset', True, 'offset')
@@ -28,7 +28,7 @@ tf.app.flags.DEFINE_string("train_all_result", 'Result/YogaposeD', "model name")
 
 
 "----------------------------- Data options -----------------------------"
-tf.app.flags.DEFINE_boolean("checkanno", True,"check annotation")
+tf.app.flags.DEFINE_boolean("checkanno", False,"check annotation")
 
 tf.app.flags.DEFINE_string("dataset",'MPII_13',"choose data format:MPII_13/MPII/COCO/YOGA")
 tf.app.flags.DEFINE_integer("totaljoints", 13, "MPII16/MPII_13/COCO13/YOGA13")

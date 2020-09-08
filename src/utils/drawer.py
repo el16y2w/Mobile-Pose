@@ -14,10 +14,8 @@ class Drawer:
     PID_BACKGROUND = (35, 35, 35)
     PID_LETTERS = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
 
-
     TXT_FOREGROUND = (225,225,225)
     TXT_BACKGROUND = (25,25,25)
-
 
     #BONE_COLOR = (110, 249, 227)
     #JOINT_COLOR = (60, 199, 157)
@@ -58,7 +56,6 @@ class Drawer:
             color = Drawer.BONE_COLOR if i == 0 else Drawer.JOINT_COLOR
             cv2.circle(img, (joints[i,0], joints[i,1]), 3, color, -1)
 
-
         return img
 
 
@@ -88,8 +85,6 @@ class Drawer:
         #
         # if not isinstance(curr_frame, type(None)):
         #     img = Drawer.draw_text(img, (40,0), "frame "+str(int(curr_frame)), color=Drawer.TXT_FOREGROUND, size=13)
-
-
         keypoints = []
         for pid in range(len(poses_2d)):
 
