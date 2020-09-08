@@ -383,7 +383,7 @@ class Trainer:
                 summary = tf.Summary(value=[tf.Summary.Value(tag="testset_accuracy", simple_value=mean(distances))])
                 Val_acc = mean(distances)
                 print("Model_Folder:{}|--Epoch:{}|--isTrain:{}|--Earlystop:{}|--Train Loss:{}|--Val Acc:{}|--AUC:{}|--lr:{}".format(
-                    str(opt.Model_folder_name),str(i),str(opt.isTrain),str(opt.Early_stopping),train_loss, str(Val_acc)[:4],str(auc_all)[:4] ,str(cur_lr)))
+                    str(opt.Model_folder_name),str(i),str(opt.isTrain),str(opt.Early_stopping),train_loss, str(Val_acc)[:6],str(auc_all)[:6] ,str(cur_lr)))
 
                 auc_head,auc_leftShoulder, auc_rightShoulder, auc_leftElbow, auc_rightElbow, auc_leftWrist,\
                 auc_rightWrist, auc_leftHip, auc_rightHip, auc_leftKnee, auc_rightKnee, auc_leftAnkle, auc_rightAnkle = auc.auc_cal()
