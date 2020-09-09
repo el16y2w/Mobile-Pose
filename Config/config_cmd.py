@@ -6,7 +6,7 @@ json_dir = 'img/tree.json'
 
 #Train model
 #select data
-dataformat = ['coco_crowd']#coco_mpii_13,coco_mpii_16,yoga,coco
+dataformat = ['yoga']#coco_mpii_13,coco_mpii_16,yoga,coco
 datanumber = 1 #multiple
 dataset_comment = "coco_ochuman"
 
@@ -19,10 +19,10 @@ dataset_comment = "coco_ochuman"
 # efficientnet : inputsize(224,224), output size(56,56)
 
 #data prepare
-train_annotFile = "img/crowdpose/annotations/crowdpose_val.json"
-train_imageDir = "img/crowdpose/images"
-test_annotFile = "img/crowdpose/annotations/crowdpose_val.json"
-test_imageDir = "img/crowdpose/images"
+# train_annotFile = "img/crowdpose/annotations/crowdpose_val.json"
+# train_imageDir = "img/crowdpose/images"
+# test_annotFile = "img/crowdpose/annotations/crowdpose_val.json"
+# test_imageDir = "img/crowdpose/images"
 # train_annotFile = "img/ochuman/ochuman_coco_format_test_range_0.00_1.00.json"
 # train_imageDir = "img/ochuman/images"
 # test_annotFile = "img/ochuman/ochuman_coco_format_test_range_0.00_1.00.json"
@@ -35,10 +35,10 @@ test_imageDir = "img/crowdpose/images"
 # train_imageDir1 = "coco/images"
 # test_annotFile1 = "coco/person_keypoints_val2017.json"
 # test_imageDir1 = "coco/images"
-# train_annotFile1 = "img/ai_add_searchedyoga_train.json"
-# train_imageDir1 = "img/ai_add_searchedyoga_train"
-# test_annotFile1 = "img/ai_add_searchedyoga_test.json"
-# test_imageDir1 = "img/ai_add_searchedyoga_test"
+train_annotFile = "img/ai_add_searchedyoga_train.json"
+train_imageDir = "img/ai_add_searchedyoga_train"
+test_annotFile = "img/ai_add_searchedyoga_test.json"
+test_imageDir = "img/ai_add_searchedyoga_test"
 dataprovider_trainanno =[train_annotFile]
 dataprovider_trainimg = [train_imageDir]
 dataprovider_testanno = [test_annotFile]

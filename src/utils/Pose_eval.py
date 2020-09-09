@@ -5,18 +5,20 @@ import numpy as np
 class pose_eval:
     def __init__(self):
         self.distThresh = 0.5
+        self.distances = []
         self.pcks = []
         self.dist_kp = []
 
 
     def save_value(self,pose_gt,pose_pred):
 
-        ALL_dist,KP_dist,mask = pose_gt.distance_to(pose_pred)
+        ALL_dist,KP_dist,distances = pose_gt.distance_to(pose_pred)
         match = ALL_dist <= self.distThresh
         pck = 1.0 * np.sum(match, axis=0) / len(ALL_dist)
         self.pcks.append(pck)
         self.dist_kp.append(KP_dist)
-        return self.pcks,self.dist_kp
+        self.distances.append(distances)
+        return self.pcks,self.dist_kp,self.distances
 
 
     def cal_eval(self):

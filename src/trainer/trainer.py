@@ -376,7 +376,7 @@ class Trainer:
 
                     auc.auc_append(confidence_gt, confidence_pred)
                     pose_pred = Pose2D(tmp)
-                    pcks,dist_KP = pose_eval.save_value(pose_gt,pose_pred)
+                    pcks,dist_KP,distances = pose_eval.save_value(pose_gt,pose_pred)
 
                 PCK = np.sum(np.array(pcks)) / len(pcks)
                 # pcks.append(mean_pck)
@@ -384,10 +384,12 @@ class Trainer:
                 # kps_acc = pose_eval.cal_eval()
                 kps_acc = pose_eval.cal_eval()
                 auc_all = auc.auc_cal_all()
-                summary = tf.Summary(value=[tf.Summary.Value(tag="testset_accuracy", simple_value=PCK)])
+                summarypck = tf.Summary(value=[tf.Summary.Value(tag="PCK", simple_value=PCK)])
+                summaryacc = tf.Summary(value=[tf.Summary.Value(tag="testset_accuracy", simple_value=mean(distances))])
 
-                print("Model_Folder:{}|--Epoch:{}|--isTrain:{}|--Earlystop:{}|--Train Loss:{}|--PCK:{}|--AUC:{}|--lr:{}".format(
-                    str(opt.Model_folder_name),str(i),str(opt.isTrain),str(opt.Early_stopping),train_loss, str(PCK)[:6],str(auc_all)[:6] ,str(cur_lr)))
+                print("Model_Folder:{}|--Epoch:{}|--isTrain:{}|--Earlystop:{}|--Train Loss:{}|--ACC:{}|--PCK:{}|--AUC:{}|--lr:{}".format(
+                    str(opt.Model_folder_name),str(i),str(opt.isTrain),str(opt.Early_stopping),train_loss,str(mean(distances))[:6],
+                    str(PCK)[:6],str(auc_all)[:6] ,str(cur_lr)))
 
                 auc_head,auc_leftShoulder, auc_rightShoulder, auc_leftElbow, auc_rightElbow, auc_leftWrist,\
                 auc_rightWrist, auc_leftHip, auc_rightHip, auc_leftKnee, auc_rightKnee, auc_leftAnkle, auc_rightAnkle = auc.auc_cal()
@@ -401,7 +403,8 @@ class Trainer:
                            PCK, auc_all, kps_acc[0][0], auc_head,kps_acc[1][0], auc_leftShoulder, kps_acc[2][0], auc_rightShoulder, kps_acc[3][0], auc_leftElbow,
                            kps_acc[4][0], auc_rightElbow, kps_acc[5][0], auc_leftWrist,kps_acc[6][0], auc_rightWrist, kps_acc[7][0], auc_leftHip, kps_acc[8][0], auc_rightHip, kps_acc[9][0],
                            auc_leftKnee, kps_acc[10][0], auc_rightKnee,kps_acc[11][0], auc_leftAnkle, kps_acc[12][0], auc_rightAnkle))
-                self.fileWriter.add_summary(summary, i)
+                self.fileWriter.add_summary(summarypck, i)
+                self.fileWriter.add_summary(summaryacc, i)
 
 
             if i % Trainer.VIZ_EVERY == 0:

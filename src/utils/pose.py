@@ -153,8 +153,8 @@ class Pose2D:
             dist_KP[i][0] = np.linalg.norm(np.subtract(pointGT_KP, pointPr_KP)) / torsoSize_KP
         dist_KP = np.array(dist_KP)
 
-        return dist,dist_KP,mask
-        #return np.sqrt(((j1 -j2)**2).sum(1)).mean(), np.sqrt(((self.get_joints() -that.get_joints())**2).sum(1)) ,mask
+        return dist,dist_KP,np.sqrt(((j1 -j2)**2).sum(1)).mean()
+        #return np.sqrt(((j1 -j2)**2).sum(1)).mean()
 
     def get_gravity_center(self):
         return self.joints[self.is_active_mask, :].mean(0)
