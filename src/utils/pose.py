@@ -136,6 +136,7 @@ class Pose2D:
         # compute reference distance as torso size
         button = np.array([j1[0][0], np.minimum(j1[-2][1], j1[-1][1])])
         torsoSize = self.getTorsoSize(j1[0][1], button[1])
+        if torsoSize ==0: torsoSize = 0.0001
         # iterate over all possible body joints
         for i in range(len(j1)):
             # compute distance between predicted and GT joint locations
@@ -144,13 +145,12 @@ class Pose2D:
             dist[i][0] = np.linalg.norm(np.subtract(pointGT, pointPr)) / torsoSize
         dist = np.array(dist)
 
-        button_KP = np.array([j1[0][0], np.minimum(j1[-2][1], j1[-1][1])])
-        torsoSize_KP = self.getTorsoSize(j1[0][1], button_KP[1])
+
         for i in range(opt.totaljoints):
             # compute distance between predicted and GT joint locations
             pointGT_KP = [self.get_joints()[i][0], self.get_joints()[i][1]]
             pointPr_KP = [that.get_joints()[i][0], that.get_joints()[i][1]]
-            dist_KP[i][0] = np.linalg.norm(np.subtract(pointGT_KP, pointPr_KP)) / torsoSize_KP
+            dist_KP[i][0] = np.linalg.norm(np.subtract(pointGT_KP, pointPr_KP)) / torsoSize
         dist_KP = np.array(dist_KP)
 
         return dist,dist_KP,np.sqrt(((j1 -j2)**2).sum(1)).mean()
