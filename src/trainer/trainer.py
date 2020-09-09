@@ -280,12 +280,21 @@ class Trainer:
         PCK = 0
 
         result = open(os.path.join(exp_dir, opt.backbone + date + "_result.csv"), "w")
-        result.write(
-            "model_name,isTrain,checkpoints_file,offset,traindata,inputsize,outputsize,optimizer,opt_epilon,momentum,heatmaploss, epsilon_loss, "
-            "loss_w,Gauthreshold, GauSigma, datasetnumber,Dataset,Totaljoints,epochs, learning_type,decayrate,learning-rate, require_improvement,j_min,j_max,test_epoch,"
-            "training_time,train_loss, PCK ,auc_all,head,auc_head,lShoulder,auc_lShoulder, rShoulder,auc_rShoulder, lElbow,auc_lElbow, "
-            "rElbow,auc_rElbow, lWrist,auc_lWrist, rWrist,auc_rWrist, lHip,auc_lHip, rHip,auc_rHip, lKnee,auc_lKnee, rKnee,auc_rKnee, lAnkle,auc_lAnkle, rAnkle,auc_rAnkle\n")
-        result.close()
+        if opt.Early_stopping == True:
+            result.write(
+                "model_name,isTrain,checkpoints_file,offset,traindata,inputsize,outputsize,optimizer,opt_epilon,momentum,heatmaploss, epsilon_loss, "
+                "loss_w,Gauthreshold, GauSigma, datasetnumber,Dataset,Totaljoints,epochs, learning_type,decayrate,learning-rate, require_improvement,j_min,j_max,test_epoch,"
+                "training_time,train_loss, PCK ,auc_all,head,auc_head,lShoulder,auc_lShoulder, rShoulder,auc_rShoulder, lElbow,auc_lElbow, "
+                "rElbow,auc_rElbow, lWrist,auc_lWrist, rWrist,auc_rWrist, lHip,auc_lHip, rHip,auc_rHip, lKnee,auc_lKnee, rKnee,auc_rKnee, lAnkle,auc_lAnkle, rAnkle,auc_rAnkle\n")
+            result.close()
+        else:
+            result.write(
+                "model_name,isTrain,checkpoints_file,offset,traindata,inputsize,outputsize,optimizer,opt_epilon,momentum,heatmaploss, epsilon_loss, "
+                "loss_w,Gauthreshold, GauSigma, datasetnumber,Dataset,Totaljoints,epochs,decayrate,learning-rate,"
+                "training_time,train_loss, PCK ,auc_all,head,auc_head,lShoulder,auc_lShoulder, rShoulder,auc_rShoulder, lElbow,auc_lElbow, "
+                "rElbow,auc_rElbow, lWrist,auc_lWrist, rWrist,auc_rWrist, lHip,auc_lHip, rHip,auc_rHip, lKnee,auc_lKnee, rKnee,auc_rKnee, lAnkle,auc_lAnkle, rAnkle,auc_rAnkle\n")
+            result.close()
+
         if os.path.exists("Result/Yogapose" + '/' + "training_result.csv"):
             pass
         else:
@@ -379,9 +388,7 @@ class Trainer:
                     pcks,dist_KP,distances = pose_eval.save_value(pose_gt,pose_pred)
 
                 PCK = np.sum(np.array(pcks)) / len(pcks)
-                # pcks.append(mean_pck)
 
-                # kps_acc = pose_eval.cal_eval()
                 kps_acc = pose_eval.cal_eval()
                 auc_all = auc.auc_cal_all()
                 summarypck = tf.Summary(value=[tf.Summary.Value(tag="PCK", simple_value=PCK)])
@@ -393,16 +400,28 @@ class Trainer:
 
                 auc_head,auc_leftShoulder, auc_rightShoulder, auc_leftElbow, auc_rightElbow, auc_leftWrist,\
                 auc_rightWrist, auc_leftHip, auc_rightHip, auc_leftKnee, auc_rightKnee, auc_leftAnkle, auc_rightAnkle = auc.auc_cal()
-                result.write(
-                    "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}"
-                    ",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
-                    format(modeltype, opt.isTrain, opt.checkpoints_file, opt.offset, str(config.dataformat),
-                           self.inputSize[0],config.outputSize[0], opt.optimizer, opt.epsilon, opt.momentum, opt.hm_lossselect,
-                           opt.epsilon_loss,opt.w, opt.gaussian_thres, opt.gaussian_sigma, config.datanumber, opt.dataset,
-                           opt.totaljoints, i, opt.lr_type, opt.decay_rate, lr,opt.require_improvement, opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss,
-                           PCK, auc_all, kps_acc[0][0], auc_head,kps_acc[1][0], auc_leftShoulder, kps_acc[2][0], auc_rightShoulder, kps_acc[3][0], auc_leftElbow,
-                           kps_acc[4][0], auc_rightElbow, kps_acc[5][0], auc_leftWrist,kps_acc[6][0], auc_rightWrist, kps_acc[7][0], auc_leftHip, kps_acc[8][0], auc_rightHip, kps_acc[9][0],
-                           auc_leftKnee, kps_acc[10][0], auc_rightKnee,kps_acc[11][0], auc_leftAnkle, kps_acc[12][0], auc_rightAnkle))
+                if opt.Early_stopping == True:
+                    result.write(
+                        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}"
+                        ",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
+                        format(modeltype, opt.isTrain, opt.checkpoints_file, opt.offset, str(config.dataformat),
+                               self.inputSize[0],config.outputSize[0], opt.optimizer, opt.epsilon, opt.momentum, opt.hm_lossselect,
+                               opt.epsilon_loss,opt.w, opt.gaussian_thres, opt.gaussian_sigma, config.datanumber, opt.dataset,
+                               opt.totaljoints, i, opt.lr_type, opt.decay_rate, lr,opt.require_improvement, opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss,
+                               PCK, auc_all, kps_acc[0][0], auc_head,kps_acc[1][0], auc_leftShoulder, kps_acc[2][0], auc_rightShoulder, kps_acc[3][0], auc_leftElbow,
+                               kps_acc[4][0], auc_rightElbow, kps_acc[5][0], auc_leftWrist,kps_acc[6][0], auc_rightWrist, kps_acc[7][0], auc_leftHip, kps_acc[8][0], auc_rightHip, kps_acc[9][0],
+                               auc_leftKnee, kps_acc[10][0], auc_rightKnee,kps_acc[11][0], auc_leftAnkle, kps_acc[12][0], auc_rightAnkle))
+                else:
+                    result.write(
+                        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}"
+                        ",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
+                        format(modeltype, opt.isTrain, opt.checkpoints_file, opt.offset, str(config.dataformat),
+                               self.inputSize[0],config.outputSize[0], opt.optimizer, opt.epsilon, opt.momentum, opt.hm_lossselect,
+                               opt.epsilon_loss,opt.w, opt.gaussian_thres, opt.gaussian_sigma, config.datanumber, opt.dataset,
+                               opt.totaljoints, i, opt.decay_rate, lr, training_time, train_loss,
+                               PCK, auc_all, kps_acc[0][0], auc_head,kps_acc[1][0], auc_leftShoulder, kps_acc[2][0], auc_rightShoulder, kps_acc[3][0], auc_leftElbow,
+                               kps_acc[4][0], auc_rightElbow, kps_acc[5][0], auc_leftWrist,kps_acc[6][0], auc_rightWrist, kps_acc[7][0], auc_leftHip, kps_acc[8][0], auc_rightHip, kps_acc[9][0],
+                               auc_leftKnee, kps_acc[10][0], auc_rightKnee,kps_acc[11][0], auc_leftAnkle, kps_acc[12][0], auc_rightAnkle))
                 self.fileWriter.add_summary(summarypck, i)
                 self.fileWriter.add_summary(summaryacc, i)
 
