@@ -271,7 +271,8 @@ class DataProvider:
     @staticmethod
     def build(cocoAnnotFile, cocoImgDir, inputSize, batchSize, datatype):
         if datatype == 'coco' or  datatype == 'coco_mpii' or datatype == 'coco_mpii_13' or \
-                datatype == 'coco_crowd' or datatype == 'coco_ochuman' or datatype == 'coco_human36':
+                datatype == 'coco_crowd' or datatype == 'coco_ochuman' or datatype == 'coco_human36' or \
+                datatype == "ai_coco":
             coco = CocoInterface.build(cocoAnnotFile, cocoImgDir,datatype)
 
         elif datatype == 'yoga':

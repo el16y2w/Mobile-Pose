@@ -113,15 +113,23 @@ class CocoInterface:
             kp = np.array(kp).astype(np.float32)
             pose = Pose2D.build_from_coco(kp,datatype)
 
-            is_crowd = (entry['iscrowd'] == 1)
+            if datatype == "ai_coco":
+                if not img_id in annotations_res:
+                    annotations_res[img_id] = []
 
-            if not img_id in annotations_res:
-                annotations_res[img_id] = []
+                annotations_res[img_id].append({
+                    'pose': pose
+                })
+            else:
+                is_crowd = (entry['iscrowd'] == 1)
 
-            annotations_res[img_id].append({
-                'pose': pose,
-                'isCrowd': is_crowd
-            })
+                if not img_id in annotations_res:
+                    annotations_res[img_id] = []
+
+                annotations_res[img_id].append({
+                    'pose': pose,
+                    'isCrowd': is_crowd
+                })
 
         return CocoInterface(image_dir, images_res, annotations_res)
 

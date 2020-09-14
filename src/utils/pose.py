@@ -58,6 +58,7 @@ class Pose2D:
     FROM_CROWDPOSE_PERMUTATION = [12, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
     FROM_OCHUMAN_PERMUTATION = [0, 5, 6, 7, 8, 9, 10 ,11, 12, 13, 14, 15, 16]
     TO_HUMAN_36_PERMUTATION = [8, 10, 12, 7, 9, 11, 0, 1, 3, 5, 2, 4, 6]
+    FROM_aichallenge_PERMUTATION = [12, 3, 0, 4, 1, 5, 2, 9, 6, 10, 7, 11, 8]
     # FROM_COCO2_PERMUTATION = [0, 4, 1, 5, 2, 6, 3, 10, 7, 11, 8, 12, 9]
     # FROM_POSE2D_PERMUTATION = [0, 5, 2, 6, 3, 7, 4, 11, 8, 12, 9, 13, 10]
 
@@ -93,6 +94,8 @@ class Pose2D:
             joints = npArray[Pose2D.FROM_OCHUMAN_PERMUTATION,:]
         elif datatype == "coco_human36":
             joints = npArray[Pose2D.TO_HUMAN_36_PERMUTATION,:]
+        elif datatype == "ai_coco":
+            joints = npArray[Pose2D.FROM_aichallenge_PERMUTATION,:]
         else:
             raise ValueError("Your dataset name is wrong")
 
