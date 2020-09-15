@@ -1,5 +1,6 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
+from opt import opt
 
 class LayerProvider:
 
@@ -36,7 +37,7 @@ class LayerProvider:
                 output = slim.separable_convolution2d(output,
                                                       num_outputs=None,
                                                       stride=stride,
-                                                      depth_multiplier=1.0,
+                                                      depth_multiplier=opt.depth_multiplier,
                                                       activation_fn=tf.nn.swish,
                                                       kernel_size=k_s,
                                                       weights_initializer=self.init_xavier,

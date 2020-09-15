@@ -1,5 +1,6 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
+from opt import opt
 
 class LayerProvider:
 
@@ -33,7 +34,7 @@ class LayerProvider:
                                                   num_outputs=None,
                                                   stride=stride,
                                                   trainable=self.is4Train,
-                                                  depth_multiplier=1.0,
+                                                  depth_multiplier=opt.depth_multiplier,
                                                   kernel_size=[k_s, k_s],
                                                   rate=dilation,
                                                   weights_initializer=self.init_xavier,
@@ -99,7 +100,7 @@ class LayerProvider:
                 output = slim.separable_convolution2d(output,
                                                       num_outputs=None,
                                                       stride=stride,
-                                                      depth_multiplier=1.0,
+                                                      depth_multiplier=opt.depth_multiplier,
                                                       activation_fn=tf.nn.relu6,
                                                       kernel_size=k_s,
                                                       weights_initializer=self.init_xavier,
@@ -224,7 +225,7 @@ def _conv_bn_relu(inputs, filters_num, kernel_size, name, use_bias=True, strides
     return x
 
 
-def _dwise_conv(inputs, k_h=3, k_w=3, depth_multiplier=1, strides=(1, 1),
+def _dwise_conv(inputs, k_h=3, k_w=3, depth_multiplier=opt.depth_multiplier, strides=(1, 1),
                 padding='SAME', name='dwise_conv', use_bias=False,
                 reuse=None):
     kernel_size = (k_w, k_h)

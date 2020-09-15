@@ -6,10 +6,10 @@ FLAGS = tf.app.flags.FLAGS
 "----------------------------- Training options -----------------------------"
 tf.app.flags.DEFINE_integer("batch", 8, "batch size")
 tf.app.flags.DEFINE_integer("epoch", 150000, "Current epoch")
-tf.app.flags.DEFINE_integer("fromStep", 0, "Initial epoch")
+tf.app.flags.DEFINE_integer("fromStep", 28700, "Initial epoch")
 tf.app.flags.DEFINE_integer("SAVE_EVERY", 50, "tensorboard save")
 tf.app.flags.DEFINE_integer("TEST_EVERY", 1, "tensorboard test")
-tf.app.flags.DEFINE_integer("VIZ_EVERY", 20, "tensorboard viz")
+tf.app.flags.DEFINE_integer("VIZ_EVERY", 50, "tensorboard viz")
 
 tf.app.flags.DEFINE_string("Model_folder_name", 'A_0', "Model_folder_name")
 
@@ -21,14 +21,14 @@ tf.app.flags.DEFINE_boolean('offset', True, 'offset')
 tf.app.flags.DEFINE_string("backbone", 'mobilenetv2', "backbone:mobilenetv1/mobilenetv2"
                                                       "/mobilenetv3/hourglass/efficientnet")
 tf.app.flags.DEFINE_string("modeloutputFile", 'YogaposeD', "model output dir")
-tf.app.flags.DEFINE_string("checkpoints_file", None, " checkpoints file")
+tf.app.flags.DEFINE_string("checkpoints_file", "Result/YogaposeD/A_0/mobilenetv2checkpoints2020-09-10-09-45-46/model-28700", " checkpoints file")
 tf.app.flags.DEFINE_string("checkpoinsaveDir", 'YogaposeD', " checkpoints save dir")
 tf.app.flags.DEFINE_string("train_all_result", 'Result/YogaposeD', "model name")
 
 
 
 "----------------------------- Data options -----------------------------"
-tf.app.flags.DEFINE_boolean("checkanno", False,"check annotation")
+tf.app.flags.DEFINE_boolean("checkanno", True,"check annotation")
 
 tf.app.flags.DEFINE_string("dataset",'MPII_13',"choose data format:MPII_13/MPII/COCO/YOGA")
 tf.app.flags.DEFINE_integer("totaljoints", 13, "MPII16/MPII_13/COCO13/YOGA13")
@@ -44,7 +44,7 @@ tf.app.flags.DEFINE_boolean('grayimage', False, 'image type')
 "----------------------------- Hyperparameter options -----------------------------"
 #lr
 tf.app.flags.DEFINE_string("lr_type", "natural_exp_decay","exponential_decay|polynomial_decay|inverse_time_decay")
-tf.app.flags.DEFINE_float("lr", 0.001, "learning rate")
+tf.app.flags.DEFINE_float("lr", 0.00095, "learning rate")
 tf.app.flags.DEFINE_float("decay_rate", 0.98, "learning rate decay rate")
 tf.app.flags.DEFINE_integer("decay_steps", 5000, "learning rate decay steps")
 
@@ -72,6 +72,8 @@ tf.app.flags.DEFINE_integer("j_max", 10, "if j_num>j_max,stop training")
 tf.app.flags.DEFINE_integer("test_epoch", 50, "每50轮迭代输出状态test")
 tf.app.flags.DEFINE_integer("require_improvement",300, "如果在#轮内没有改进，停止迭代")
 
+#model compression
+tf.app.flags.DEFINE_integer("depth_multiplier", 1, "control the output channel")
 
 
 "----------------------------- Eval options -----------------------------"
