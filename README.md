@@ -5,7 +5,7 @@ D-- Data options
 H-- Hyperparameter options
 
 
-------------------------Prepare the environment-------------------------------------------------------------------------------------------------------------------
+---------------------------Prepare the environment-------------------------------------------------------------------------------------------------------------------
 $pip install -r requirement.txt
 
 In order to check the environment, you can run this command line in terminal:
