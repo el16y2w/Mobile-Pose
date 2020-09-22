@@ -282,17 +282,17 @@ class Trainer:
         result = open(os.path.join(exp_dir, opt.backbone + date + "_result.csv"), "w")
         if opt.Early_stopping == True:
             result.write(
-                "model_name,isTrain,checkpoints_file,offset,traindata,inputsize,outputsize,optimizer,opt_epilon,momentum,heatmaploss, epsilon_loss, "
+                "Backbone,Modelchannel0,Modelchannel1,Modelchannel2,Modelchannel3,Modelchannel4,Modelchannel5,isTrain,checkpoints_file,offset,inputsize,outputsize,optimizer,opt_epilon,momentum,heatmaploss, epsilon_loss, "
                 "loss_w,Gauthreshold, GauSigma, depth_multiplier,datasetnumber,Dataset,Totaljoints,epochs, learning_type,decayrate,learning-rate, require_improvement,j_min,j_max,test_epoch,"
                 "training_time,train_loss, PCK ,auc_all,head,auc_head,lShoulder,auc_lShoulder, rShoulder,auc_rShoulder, lElbow,auc_lElbow, "
-                "rElbow,auc_rElbow, lWrist,auc_lWrist, rWrist,auc_rWrist, lHip,auc_lHip, rHip,auc_rHip, lKnee,auc_lKnee, rKnee,auc_rKnee, lAnkle,auc_lAnkle, rAnkle,auc_rAnkle\n")
+                "rElbow,auc_rElbow, lWrist,auc_lWrist, rWrist,auc_rWrist, lHip,auc_lHip, rHip,auc_rHip, lKnee,auc_lKnee, rKnee,auc_rKnee, lAnkle,auc_lAnkle, rAnkle,auc_rAnkle,traindata\n")
             result.close()
         else:
             result.write(
-                "model_name,isTrain,checkpoints_file,offset,traindata,inputsize,outputsize,optimizer,opt_epilon,momentum,heatmaploss, epsilon_loss, "
+                "Backbone,Modelchannel0,Modelchannel1,Modelchannel2,Modelchannel3,Modelchannel4,Modelchannel5,isTrain,checkpoints_file,offset,inputsize,outputsize,optimizer,opt_epilon,momentum,heatmaploss, epsilon_loss, "
                 "loss_w,Gauthreshold, GauSigma,depth_multiplier, datasetnumber,Dataset,Totaljoints,epochs,decayrate,learning-rate,"
                 "training_time,train_loss, PCK ,auc_all,head,auc_head,lShoulder,auc_lShoulder, rShoulder,auc_rShoulder, lElbow,auc_lElbow, "
-                "rElbow,auc_rElbow, lWrist,auc_lWrist, rWrist,auc_rWrist, lHip,auc_lHip, rHip,auc_rHip, lKnee,auc_lKnee, rKnee,auc_rKnee, lAnkle,auc_lAnkle, rAnkle,auc_rAnkle\n")
+                "rElbow,auc_rElbow, lWrist,auc_lWrist, rWrist,auc_rWrist, lHip,auc_lHip, rHip,auc_rHip, lKnee,auc_lKnee, rKnee,auc_rKnee, lAnkle,auc_lAnkle, rAnkle,auc_rAnkle,traindata\n")
             result.close()
 
         if os.path.exists("Result/Yogapose" + '/' + "training_result.csv"):
@@ -300,9 +300,9 @@ class Trainer:
         else:
             result_all = open(os.path.join(opt.train_all_result, "training_result.csv"), "w")
             result_all.write(
-                "Index,Backbone,isTrain,checkpoints_file,offset,traindata,inputsize,outputsize,optimizer,opt_epilon,momentum,heatmaploss, epsilon_loss, "
+                "Index,Backbone,Modelchannel0,Modelchannel1,Modelchannel2,Modelchannel3,Modelchannel4,Modelchannel5,isTrain,checkpoints_file,offset,inputsize,outputsize,optimizer,opt_epilon,momentum,heatmaploss, epsilon_loss, "
                 "loss_w,Gauthreshold, GauSigma,depth_multiplier, datasetnumber,Batch,Dataset,Totaljoints,Total_epochs,Stop_epoch, learning_type,learning-rate,decay_rate,require_improvement, "
-                "j_min,j_max,test_epoch,training_time,train_loss, best_validation_accuracy, Dataset\n")
+                "j_min,j_max,test_epoch,training_time,train_loss, best_validation_accuracy, Dataset,traindata\n")
             result_all.close()
 
         for i in range(fromStep, fromStep + totalSteps + 1):
@@ -348,15 +348,15 @@ class Trainer:
                 # 如果在require_improvement轮次内未有提升
                 if total_iterations - last_improvement > require_improvement or j_num > opt.j_max:
                     result_all.write(
-                        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
-                        format(opt.Model_folder_name, modeltype, opt.isTrain, opt.checkpoints_file, opt.offset,
-                               str(config.dataformat), self.inputSize[0], config.outputSize[0], opt.optimizer, opt.epsilon,
+                        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
+                        format(opt.Model_folder_name,config.modelchannel, modeltype, opt.isTrain, opt.checkpoints_file, opt.offset,
+                                self.inputSize[0], config.outputSize[0], opt.optimizer, opt.epsilon,
                                opt.momentum,
                                opt.hm_lossselect, opt.epsilon_loss, opt.w, opt.gaussian_thres, opt.gaussian_sigma,opt.depth_multiplier,
                                config.datanumber, opt.batch, opt.dataset,opt.totaljoints,opt.epoch, total_iterations, opt.lr_type, lr, opt.decay_rate,
                                opt.require_improvement,
                                opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss, best_validation_accuracy,
-                               config.dataset_comment))
+                               config.dataset_comment,str(config.dataformat)))
                     print("Stop optimization")
                     break
 
@@ -402,26 +402,26 @@ class Trainer:
                 auc_rightWrist, auc_leftHip, auc_rightHip, auc_leftKnee, auc_rightKnee, auc_leftAnkle, auc_rightAnkle = auc.auc_cal()
                 if opt.Early_stopping == True:
                     result.write(
-                        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}"
+                        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}"
                         ",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
-                        format(modeltype, opt.isTrain, opt.checkpoints_file, opt.offset, str(config.dataformat),
+                        format(modeltype,config.modelchannel, opt.isTrain, opt.checkpoints_file, opt.offset,
                                self.inputSize[0],config.outputSize[0], opt.optimizer, opt.epsilon, opt.momentum, opt.hm_lossselect,
                                opt.epsilon_loss,opt.w, opt.gaussian_thres, opt.gaussian_sigma,opt.depth_multiplier, config.datanumber, opt.dataset,
                                opt.totaljoints, i, opt.lr_type, opt.decay_rate, lr,opt.require_improvement, opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss,
                                PCK, auc_all, kps_acc[0][0], auc_head,kps_acc[1][0], auc_leftShoulder, kps_acc[2][0], auc_rightShoulder, kps_acc[3][0], auc_leftElbow,
                                kps_acc[4][0], auc_rightElbow, kps_acc[5][0], auc_leftWrist,kps_acc[6][0], auc_rightWrist, kps_acc[7][0], auc_leftHip, kps_acc[8][0], auc_rightHip, kps_acc[9][0],
-                               auc_leftKnee, kps_acc[10][0], auc_rightKnee,kps_acc[11][0], auc_leftAnkle, kps_acc[12][0], auc_rightAnkle))
+                               auc_leftKnee, kps_acc[10][0], auc_rightKnee,kps_acc[11][0], auc_leftAnkle, kps_acc[12][0], auc_rightAnkle, str(config.dataformat)))
                 else:
                     result.write(
-                        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}"
+                        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}"
                         ",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
-                        format(modeltype, opt.isTrain, opt.checkpoints_file, opt.offset, str(config.dataformat),
+                        format(modeltype,config.modelchannel, opt.isTrain, opt.checkpoints_file, opt.offset,
                                self.inputSize[0],config.outputSize[0], opt.optimizer, opt.epsilon, opt.momentum, opt.hm_lossselect,
                                opt.epsilon_loss,opt.w, opt.gaussian_thres, opt.gaussian_sigma,opt.depth_multiplier, config.datanumber, opt.dataset,
                                opt.totaljoints, i, opt.decay_rate, lr, training_time, train_loss,
                                PCK, auc_all, kps_acc[0][0], auc_head,kps_acc[1][0], auc_leftShoulder, kps_acc[2][0], auc_rightShoulder, kps_acc[3][0], auc_leftElbow,
                                kps_acc[4][0], auc_rightElbow, kps_acc[5][0], auc_leftWrist,kps_acc[6][0], auc_rightWrist, kps_acc[7][0], auc_leftHip, kps_acc[8][0], auc_rightHip, kps_acc[9][0],
-                               auc_leftKnee, kps_acc[10][0], auc_rightKnee,kps_acc[11][0], auc_leftAnkle, kps_acc[12][0], auc_rightAnkle))
+                               auc_leftKnee, kps_acc[10][0], auc_rightKnee,kps_acc[11][0], auc_leftAnkle, kps_acc[12][0], auc_rightAnkle, str(config.dataformat)))
                 self.fileWriter.add_summary(summarypck, i)
                 self.fileWriter.add_summary(summaryacc, i)
 
@@ -442,13 +442,13 @@ class Trainer:
                 tmp = tf.summary.image("heatmap_predicted_" + str(i), currHeatmapViz).eval(session=self.sess)
                 self.fileWriter.add_summary(tmp, i)
         result_all.write(
-            "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
-                format(opt.Model_folder_name, modeltype, opt.isTrain, opt.checkpoints_file, opt.offset,
-                       str(config.dataformat), self.inputSize[0], config.outputSize[0], opt.optimizer, opt.epsilon,
+            "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
+                format(opt.Model_folder_name,config.modelchannel, modeltype, opt.isTrain, opt.checkpoints_file, opt.offset,
+                        self.inputSize[0], config.outputSize[0], opt.optimizer, opt.epsilon,
                        opt.momentum,
                        opt.hm_lossselect, opt.epsilon_loss, opt.w, opt.gaussian_thres, opt.gaussian_sigma,opt.depth_multiplier,
                        config.datanumber, opt.batch, opt.dataset, opt.totaljoints, opt.epoch, total_iterations,
                        opt.lr_type, lr, opt.decay_rate,
                        opt.require_improvement,
                        opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss, best_validation_accuracy,
-                       config.dataset_comment))
+                       config.dataset_comment,str(config.dataformat)))

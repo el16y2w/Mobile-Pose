@@ -1,5 +1,6 @@
 import tensorflow as tf
 from opt import opt
+import Config.config_cmd as config
 from src.models.outputlayer import finallayerforoffsetoption
 if opt.activate_function == "swish":
     from src.models.Layerprovider1 import LayerProvider
@@ -28,12 +29,12 @@ class PoseNetv2:
         # architecture description
         inverted_residual_setting = [
             # t, c, n, s
-            [1, 16, 1, 1],
-            [6, 24, 2, 2],
-            [6, 32, 3, 2],
-            [6, 64, 4, 2],
-            [6, 96, 3, 1],
-            [6, 160, 3, 1],
+            [1, 16*config.modelchannel[0], 1, 1],
+            [6, 24*config.modelchannel[1], 2, 2],
+            [6, 32*config.modelchannel[2], 3, 2],
+            [6, 64*config.modelchannel[3], 4, 2],
+            [6, 96*config.modelchannel[4], 3, 1],
+            [6, 160*config.modelchannel[5], 3, 1],
             [6, 320, 1, 1]
         ]
         self.bottleneck_type = 0

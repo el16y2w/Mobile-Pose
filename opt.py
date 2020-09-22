@@ -5,8 +5,8 @@ FLAGS = tf.app.flags.FLAGS
 
 "----------------------------- Training options -----------------------------"
 tf.app.flags.DEFINE_integer("batch", 8, "batch size")
-tf.app.flags.DEFINE_integer("epoch", 150000, "Current epoch")
-tf.app.flags.DEFINE_integer("fromStep", 28700, "Initial epoch")
+tf.app.flags.DEFINE_integer("epoch", 0, "Current epoch")
+tf.app.flags.DEFINE_integer("fromStep", 1, "Initial epoch")
 tf.app.flags.DEFINE_integer("SAVE_EVERY", 50, "tensorboard save")
 tf.app.flags.DEFINE_integer("TEST_EVERY", 1, "tensorboard test")
 tf.app.flags.DEFINE_integer("VIZ_EVERY", 50, "tensorboard viz")
@@ -14,16 +14,16 @@ tf.app.flags.DEFINE_integer("VIZ_EVERY", 50, "tensorboard viz")
 tf.app.flags.DEFINE_string("Model_folder_name", 'A_0', "Model_folder_name")
 
 tf.app.flags.DEFINE_boolean("Early_stopping",False,"early stop or not")
-tf.app.flags.DEFINE_boolean('isTrain', True, 'trainable or not')
-tf.app.flags.DEFINE_boolean('isTrainpre',True,'if pre train,set false')
+tf.app.flags.DEFINE_boolean('isTrain', False, 'trainable or not')
+tf.app.flags.DEFINE_boolean('isTrainpre',False,'if pre train,set false')
 tf.app.flags.DEFINE_boolean('offset', True, 'offset')
 
 tf.app.flags.DEFINE_string("backbone", 'mobilenetv2', "backbone:mobilenetv1/mobilenetv2"
                                                       "/mobilenetv3/hourglass/efficientnet")
-tf.app.flags.DEFINE_string("modeloutputFile", 'YogaposeD', "model output dir")
-tf.app.flags.DEFINE_string("checkpoints_file", "Result/YogaposeD/A_0/mobilenetv2checkpoints2020-09-10-09-45-46/model-28700", " checkpoints file")
-tf.app.flags.DEFINE_string("checkpoinsaveDir", 'YogaposeD', " checkpoints save dir")
-tf.app.flags.DEFINE_string("train_all_result", 'Result/YogaposeD', "model name")
+tf.app.flags.DEFINE_string("modeloutputFile", 'trash', "model output dir")
+tf.app.flags.DEFINE_string("checkpoints_file", None, " checkpoints file")
+tf.app.flags.DEFINE_string("checkpoinsaveDir", 'trash', " checkpoints save dir")
+tf.app.flags.DEFINE_string("train_all_result", 'Result/trash', "model name")
 
 
 

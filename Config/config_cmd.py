@@ -6,7 +6,7 @@ json_dir = 'img/tree.json'
 
 #Train model
 #select data
-dataformat = ['yoga']#coco_mpii_13,coco_mpii_16,yoga,coco
+dataformat = ['yoga']#coco_mpii_13,coco_mpii_16,yoga,coco,ai_coco,coco_crowd
 datanumber = 1 #multiple
 dataset_comment = "coco_ochuman"
 
@@ -19,6 +19,10 @@ dataset_comment = "coco_ochuman"
 # efficientnet : inputsize(224,224), output size(56,56)
 
 #data prepare
+# train_annotFile = "img/ai_challenger/aic_train.json"
+# train_imageDir = "img/ai_challenger/ai_challenger_keypoint_train_20170909/keypoint_train_images_20170902"
+# test_annotFile = "img/ai_challenger/aic_val.json"
+# test_imageDir = "img/ai_challenger/ai_challenger_keypoint_validation_20170911/keypoint_validation_images_20170911"
 # train_annotFile = "img/crowdpose/annotations/crowdpose_val.json"
 # train_imageDir = "img/crowdpose/images"
 # test_annotFile = "img/crowdpose/annotations/crowdpose_val.json"
@@ -46,6 +50,7 @@ dataprovider_testimg = [test_imageDir]
 inputSize = (224,224)
 inputshape = (None, 224, 224, 3)
 outputSize = (56,56)
+modelchannel = [1,1,0.5,1,0.5,1]
 
 inputshapeforflops = [(1, 224, 224, 3)]
 
