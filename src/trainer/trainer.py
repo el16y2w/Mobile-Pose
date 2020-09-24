@@ -295,160 +295,170 @@ class Trainer:
                 "rElbow,auc_rElbow, lWrist,auc_lWrist, rWrist,auc_rWrist, lHip,auc_lHip, rHip,auc_rHip, lKnee,auc_lKnee, rKnee,auc_rKnee, lAnkle,auc_lAnkle, rAnkle,auc_rAnkle,traindata\n")
             result.close()
 
-        if os.path.exists("Result/Yogapose" + '/' + "training_result.csv"):
-            pass
-        else:
+        if not os.path.exists("Result/{}/training_result.csv".format(opt.modeloutputFile)):
             result_all = open(os.path.join(opt.train_all_result, "training_result.csv"), "w")
             result_all.write(
                 "Index,Backbone,Modelchannel0,Modelchannel1,Modelchannel2,Modelchannel3,Modelchannel4,Modelchannel5,isTrain,checkpoints_file,offset,inputsize,outputsize,optimizer,opt_epilon,momentum,heatmaploss, epsilon_loss, "
                 "loss_w,Gauthreshold, GauSigma,depth_multiplier, datasetnumber,Batch,Dataset,Totaljoints,Total_epochs,Stop_epoch, learning_type,learning-rate,decay_rate,require_improvement, "
                 "j_min,j_max,test_epoch,training_time,train_loss, best_validation_accuracy, Dataset,traindata\n")
             result_all.close()
+        result_all = open(os.path.join(opt.train_all_result, "training_result.csv"), "a+")
+        try:
+            for i in range(fromStep, fromStep + totalSteps + 1):
+                start_time = time.time()
+                total_iterations += 1
 
-        for i in range(fromStep, fromStep + totalSteps + 1):
-            start_time = time.time()
-            total_iterations += 1
+                result = open(os.path.join(exp_dir, opt.backbone + date + "_result.csv"), "a+")
 
-            result = open(os.path.join(exp_dir, opt.backbone + date + "_result.csv"), "a+")
-            result_all = open(os.path.join(opt.train_all_result, "training_result.csv"), "a+")
-            for j in range(config.datanumber):
-                inputs, heatmaps = self.dataTrainProvider[j].drawn()
-                res = self.sess.run([self.trainLoss[j], self.updater[j], self.summaryMerge],
-                                    feed_dict={self.inputImage: inputs, self.heatmapGT: heatmaps,
-                                               self.learningRate: lr})
-                self.fileWriter.add_summary(res[2], i)
-                print(str(i) + " -- TRAIN" + str(j) + " : " + str(res[0]))
+                for j in range(config.datanumber):
+                    inputs, heatmaps = self.dataTrainProvider[j].drawn()
+                    res = self.sess.run([self.trainLoss[j], self.updater[j], self.summaryMerge],
+                                        feed_dict={self.inputImage: inputs, self.heatmapGT: heatmaps,
+                                                   self.learningRate: lr})
+                    self.fileWriter.add_summary(res[2], i)
+                    print(str(i) + " -- TRAIN" + str(j) + " : " + str(res[0]))
 
-            training_time = time.time() - start_time
-            train_loss = str(res[0])
+                training_time = time.time() - start_time
+                train_loss = str(res[0])
 
-            if opt.Early_stopping:
-                if (total_iterations % opt.test_epoch == 0) or (i == totalSteps - 1):
-                    if PCK > best_validation_accuracy:
-                        best_validation_accuracy = PCK
-                        last_improvement = total_iterations
-                        j_num = 0
+                if opt.Early_stopping:
+                    if (total_iterations % opt.test_epoch == 0) or (i == totalSteps - 1):
+                        if PCK > best_validation_accuracy:
+                            best_validation_accuracy = PCK
+                            last_improvement = total_iterations
+                            j_num = 0
+                            checkpoint_path = os.path.join(self.savePath, 'model')
+                            self.saver.save(self.sess, checkpoint_path, global_step=i)
+
+                        else:
+                            j_num += 1
+                            if j_num <opt.j_min : pass
+                            else:
+                                if opt.lr_type == "exponential_decay":
+                                    lr = exponential_decay(cur_lr)
+                                elif opt.lr_type == "polynomial_decay":
+                                    lr = polynomial_decay(i,cur_lr)
+                                elif opt.lr_type == "inverse_time_decay":
+                                    lr = inverse_time_decay(i,cur_lr)
+                                else:
+                                    raise ValueError("Your lr_type name is wrong")
+                                cur_lr = lr
+
+                    # 如果在require_improvement轮次内未有提升
+                    if total_iterations - last_improvement > require_improvement or j_num > opt.j_max:
+                        result_all.write(
+                            "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
+                            format(opt.Model_folder_name,config.modelchannel, modeltype, opt.isTrain, opt.checkpoints_file, opt.offset,
+                                    self.inputSize[0], config.outputSize[0], opt.optimizer, opt.epsilon,opt.momentum,
+                                   opt.hm_lossselect, opt.epsilon_loss, opt.w, opt.gaussian_thres, opt.gaussian_sigma,opt.depth_multiplier,
+                                   config.datanumber, opt.batch, opt.dataset,opt.totaljoints,opt.epoch, total_iterations, opt.lr_type, lr, opt.decay_rate,
+                                   opt.require_improvement,opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss, best_validation_accuracy,
+                                   config.dataset_comment,str(config.dataformat)))
+                        print("Stop optimization")
+                        break
+
+                else:
+                    if i % Trainer.SAVE_EVERY == 0:
                         checkpoint_path = os.path.join(self.savePath, 'model')
                         self.saver.save(self.sess, checkpoint_path, global_step=i)
 
+
+                if i % Trainer.TEST_EVERY == 0:
+                    inputs, heatmaps = self.dataValProvider[0].drawn()
+                    res = self.sess.run([self.output, self.summaryMerge],
+                                        feed_dict={self.inputImage: inputs, self.heatmapGT: heatmaps, self.learningRate: 0})
+                    fullscreen_bbox = BBox(0, 1, 0, 1)
+
+                    for batch_id in range(inputs.shape[0]):
+                        pose_gt, confidence_gt = Pose2DInterface.our_approach_postprocessing(heatmaps[batch_id, :, :, :],
+                                                                                 fullscreen_bbox, self.inputSize)
+                        pose_pred, confidence_pred = Pose2DInterface.our_approach_postprocessing(res[0][batch_id, :, :, :],
+                                                                                   fullscreen_bbox, self.inputSize)
+                        # pose_pred
+                        # all labeled gt joints are used in the loss,
+                        # if not detected by the prediction joint location (-1,-1) => (0.5,0.5)
+                        tmp = pose_pred.get_joints()
+                        tmp[~pose_pred.get_active_joints(), :] = 0.5
+
+                        auc.auc_append(confidence_gt, confidence_pred)
+                        pose_pred = Pose2D(tmp)
+                        pcks,dist_KP,distances = pose_eval.save_value(pose_gt,pose_pred)
+
+                    PCK = np.sum(np.array(pcks)) / len(pcks)
+                    best_validation_accuracy = PCK
+
+                    kps_acc = pose_eval.cal_eval()
+                    auc_all = auc.auc_cal_all()
+                    summarypck = tf.Summary(value=[tf.Summary.Value(tag="PCK", simple_value=PCK)])
+                    summaryacc = tf.Summary(value=[tf.Summary.Value(tag="testset_accuracy", simple_value=mean(distances))])
+
+                    print("Model_Folder:{}|--Epoch:{}|--isTrain:{}|--Earlystop:{}|--Train Loss:{}|--ACC:{}|--PCK:{}|--AUC:{}|--lr:{}".format(
+                        str(opt.Model_folder_name),str(i),str(opt.isTrain),str(opt.Early_stopping),train_loss,str(mean(distances))[:6],
+                        str(PCK)[:6],str(auc_all)[:6] ,str(cur_lr)))
+
+                    auc_head,auc_leftShoulder, auc_rightShoulder, auc_leftElbow, auc_rightElbow, auc_leftWrist,\
+                    auc_rightWrist, auc_leftHip, auc_rightHip, auc_leftKnee, auc_rightKnee, auc_leftAnkle, auc_rightAnkle = auc.auc_cal()
+                    if opt.Early_stopping == True:
+                        result.write(
+                            "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}"
+                            ",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
+                            format(modeltype,config.modelchannel, opt.isTrain, opt.checkpoints_file, opt.offset,
+                                   self.inputSize[0],config.outputSize[0], opt.optimizer, opt.epsilon, opt.momentum, opt.hm_lossselect,
+                                   opt.epsilon_loss,opt.w, opt.gaussian_thres, opt.gaussian_sigma,opt.depth_multiplier, config.datanumber, opt.dataset,
+                                   opt.totaljoints, i, opt.lr_type, opt.decay_rate, lr,opt.require_improvement, opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss,
+                                   PCK, auc_all, kps_acc[0][0], auc_head,kps_acc[1][0], auc_leftShoulder, kps_acc[2][0], auc_rightShoulder, kps_acc[3][0], auc_leftElbow,
+                                   kps_acc[4][0], auc_rightElbow, kps_acc[5][0], auc_leftWrist,kps_acc[6][0], auc_rightWrist, kps_acc[7][0], auc_leftHip, kps_acc[8][0], auc_rightHip, kps_acc[9][0],
+                                   auc_leftKnee, kps_acc[10][0], auc_rightKnee,kps_acc[11][0], auc_leftAnkle, kps_acc[12][0], auc_rightAnkle, str(config.dataformat)))
                     else:
-                        j_num += 1
-                        if j_num <opt.j_min : pass
-                        else:
-                            if opt.lr_type == "exponential_decay":
-                                lr = exponential_decay(cur_lr)
-                            elif opt.lr_type == "polynomial_decay":
-                                lr = polynomial_decay(i,cur_lr)
-                            elif opt.lr_type == "inverse_time_decay":
-                                lr = inverse_time_decay(i,cur_lr)
-                            else:
-                                raise ValueError("Your lr_type name is wrong")
-                            cur_lr = lr
-
-                # 如果在require_improvement轮次内未有提升
-                if total_iterations - last_improvement > require_improvement or j_num > opt.j_max:
-                    result_all.write(
-                        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
-                        format(opt.Model_folder_name,config.modelchannel, modeltype, opt.isTrain, opt.checkpoints_file, opt.offset,
-                                self.inputSize[0], config.outputSize[0], opt.optimizer, opt.epsilon,
-                               opt.momentum,
-                               opt.hm_lossselect, opt.epsilon_loss, opt.w, opt.gaussian_thres, opt.gaussian_sigma,opt.depth_multiplier,
-                               config.datanumber, opt.batch, opt.dataset,opt.totaljoints,opt.epoch, total_iterations, opt.lr_type, lr, opt.decay_rate,
-                               opt.require_improvement,
-                               opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss, best_validation_accuracy,
-                               config.dataset_comment,str(config.dataformat)))
-                    print("Stop optimization")
-                    break
-
-            else:
-                if i % Trainer.SAVE_EVERY == 0:
-                    checkpoint_path = os.path.join(self.savePath, 'model')
-                    self.saver.save(self.sess, checkpoint_path, global_step=i)
+                        result.write(
+                            "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}"
+                            ",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
+                            format(modeltype,config.modelchannel, opt.isTrain, opt.checkpoints_file, opt.offset,
+                                   self.inputSize[0],config.outputSize[0], opt.optimizer, opt.epsilon, opt.momentum, opt.hm_lossselect,
+                                   opt.epsilon_loss,opt.w, opt.gaussian_thres, opt.gaussian_sigma,opt.depth_multiplier, config.datanumber, opt.dataset,
+                                   opt.totaljoints, i, opt.decay_rate, lr, training_time, train_loss,
+                                   PCK, auc_all, kps_acc[0][0], auc_head,kps_acc[1][0], auc_leftShoulder, kps_acc[2][0], auc_rightShoulder, kps_acc[3][0], auc_leftElbow,
+                                   kps_acc[4][0], auc_rightElbow, kps_acc[5][0], auc_leftWrist,kps_acc[6][0], auc_rightWrist, kps_acc[7][0], auc_leftHip, kps_acc[8][0], auc_rightHip, kps_acc[9][0],
+                                   auc_leftKnee, kps_acc[10][0], auc_rightKnee,kps_acc[11][0], auc_leftAnkle, kps_acc[12][0], auc_rightAnkle, str(config.dataformat)))
+                    self.fileWriter.add_summary(summarypck, i)
+                    self.fileWriter.add_summary(summaryacc, i)
 
 
-            if i % Trainer.TEST_EVERY == 0:
-                inputs, heatmaps = self.dataValProvider[0].drawn()
-                res = self.sess.run([self.output, self.summaryMerge],
-                                    feed_dict={self.inputImage: inputs, self.heatmapGT: heatmaps, self.learningRate: 0})
-                fullscreen_bbox = BBox(0, 1, 0, 1)
+                if i % Trainer.VIZ_EVERY == 0:
+                    inputs, heatmaps = self.dataValProvider[0].drawn()
+                    res = self.sess.run([self.output, self.summaryMerge],
+                                        feed_dict={self.inputImage: inputs, self.heatmapGT: heatmaps, self.learningRate: 0})
+                    currHeatmaps = res[0][0, :, :, :]
+                    currImage = self._imageFeatureToImage(inputs[0, :, :, :])
+                    currHeatmapViz = self._heatmapVisualisation(currHeatmaps)
+                    currHeatmapViz = currHeatmapViz.reshape((1, currHeatmapViz.shape[0], currHeatmapViz.shape[0], 1))
+                    currPose = self._toPose(currHeatmaps)
+                    skeletonViz = np.expand_dims(Drawer.draw_2d_pose(currImage, currPose), 0)
 
-                for batch_id in range(inputs.shape[0]):
-                    pose_gt, confidence_gt = Pose2DInterface.our_approach_postprocessing(heatmaps[batch_id, :, :, :],
-                                                                             fullscreen_bbox, self.inputSize)
-                    pose_pred, confidence_pred = Pose2DInterface.our_approach_postprocessing(res[0][batch_id, :, :, :],
-                                                                               fullscreen_bbox, self.inputSize)
-                    # pose_pred
-                    # all labeled gt joints are used in the loss,
-                    # if not detected by the prediction joint location (-1,-1) => (0.5,0.5)
-                    tmp = pose_pred.get_joints()
-                    tmp[~pose_pred.get_active_joints(), :] = 0.5
+                    tmp = tf.summary.image("skeleton_" + str(i), skeletonViz).eval(session=self.sess)
+                    self.fileWriter.add_summary(tmp, i)
+                    tmp = tf.summary.image("heatmap_predicted_" + str(i), currHeatmapViz).eval(session=self.sess)
+                    self.fileWriter.add_summary(tmp, i)
 
-                    auc.auc_append(confidence_gt, confidence_pred)
-                    pose_pred = Pose2D(tmp)
-                    pcks,dist_KP,distances = pose_eval.save_value(pose_gt,pose_pred)
-
-                PCK = np.sum(np.array(pcks)) / len(pcks)
-
-                kps_acc = pose_eval.cal_eval()
-                auc_all = auc.auc_cal_all()
-                summarypck = tf.Summary(value=[tf.Summary.Value(tag="PCK", simple_value=PCK)])
-                summaryacc = tf.Summary(value=[tf.Summary.Value(tag="testset_accuracy", simple_value=mean(distances))])
-
-                print("Model_Folder:{}|--Epoch:{}|--isTrain:{}|--Earlystop:{}|--Train Loss:{}|--ACC:{}|--PCK:{}|--AUC:{}|--lr:{}".format(
-                    str(opt.Model_folder_name),str(i),str(opt.isTrain),str(opt.Early_stopping),train_loss,str(mean(distances))[:6],
-                    str(PCK)[:6],str(auc_all)[:6] ,str(cur_lr)))
-
-                auc_head,auc_leftShoulder, auc_rightShoulder, auc_leftElbow, auc_rightElbow, auc_leftWrist,\
-                auc_rightWrist, auc_leftHip, auc_rightHip, auc_leftKnee, auc_rightKnee, auc_leftAnkle, auc_rightAnkle = auc.auc_cal()
-                if opt.Early_stopping == True:
-                    result.write(
-                        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}"
-                        ",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
-                        format(modeltype,config.modelchannel, opt.isTrain, opt.checkpoints_file, opt.offset,
-                               self.inputSize[0],config.outputSize[0], opt.optimizer, opt.epsilon, opt.momentum, opt.hm_lossselect,
-                               opt.epsilon_loss,opt.w, opt.gaussian_thres, opt.gaussian_sigma,opt.depth_multiplier, config.datanumber, opt.dataset,
-                               opt.totaljoints, i, opt.lr_type, opt.decay_rate, lr,opt.require_improvement, opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss,
-                               PCK, auc_all, kps_acc[0][0], auc_head,kps_acc[1][0], auc_leftShoulder, kps_acc[2][0], auc_rightShoulder, kps_acc[3][0], auc_leftElbow,
-                               kps_acc[4][0], auc_rightElbow, kps_acc[5][0], auc_leftWrist,kps_acc[6][0], auc_rightWrist, kps_acc[7][0], auc_leftHip, kps_acc[8][0], auc_rightHip, kps_acc[9][0],
-                               auc_leftKnee, kps_acc[10][0], auc_rightKnee,kps_acc[11][0], auc_leftAnkle, kps_acc[12][0], auc_rightAnkle, str(config.dataformat)))
-                else:
-                    result.write(
-                        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}"
-                        ",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
-                        format(modeltype,config.modelchannel, opt.isTrain, opt.checkpoints_file, opt.offset,
-                               self.inputSize[0],config.outputSize[0], opt.optimizer, opt.epsilon, opt.momentum, opt.hm_lossselect,
-                               opt.epsilon_loss,opt.w, opt.gaussian_thres, opt.gaussian_sigma,opt.depth_multiplier, config.datanumber, opt.dataset,
-                               opt.totaljoints, i, opt.decay_rate, lr, training_time, train_loss,
-                               PCK, auc_all, kps_acc[0][0], auc_head,kps_acc[1][0], auc_leftShoulder, kps_acc[2][0], auc_rightShoulder, kps_acc[3][0], auc_leftElbow,
-                               kps_acc[4][0], auc_rightElbow, kps_acc[5][0], auc_leftWrist,kps_acc[6][0], auc_rightWrist, kps_acc[7][0], auc_leftHip, kps_acc[8][0], auc_rightHip, kps_acc[9][0],
-                               auc_leftKnee, kps_acc[10][0], auc_rightKnee,kps_acc[11][0], auc_leftAnkle, kps_acc[12][0], auc_rightAnkle, str(config.dataformat)))
-                self.fileWriter.add_summary(summarypck, i)
-                self.fileWriter.add_summary(summaryacc, i)
-
-
-            if i % Trainer.VIZ_EVERY == 0:
-                inputs, heatmaps = self.dataValProvider[0].drawn()
-                res = self.sess.run([self.output, self.summaryMerge],
-                                    feed_dict={self.inputImage: inputs, self.heatmapGT: heatmaps, self.learningRate: 0})
-                currHeatmaps = res[0][0, :, :, :]
-                currImage = self._imageFeatureToImage(inputs[0, :, :, :])
-                currHeatmapViz = self._heatmapVisualisation(currHeatmaps)
-                currHeatmapViz = currHeatmapViz.reshape((1, currHeatmapViz.shape[0], currHeatmapViz.shape[0], 1))
-                currPose = self._toPose(currHeatmaps)
-                skeletonViz = np.expand_dims(Drawer.draw_2d_pose(currImage, currPose), 0)
-
-                tmp = tf.summary.image("skeleton_" + str(i), skeletonViz).eval(session=self.sess)
-                self.fileWriter.add_summary(tmp, i)
-                tmp = tf.summary.image("heatmap_predicted_" + str(i), currHeatmapViz).eval(session=self.sess)
-                self.fileWriter.add_summary(tmp, i)
-        result_all.write(
-            "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
-                format(opt.Model_folder_name,config.modelchannel, modeltype, opt.isTrain, opt.checkpoints_file, opt.offset,
-                        self.inputSize[0], config.outputSize[0], opt.optimizer, opt.epsilon,
-                       opt.momentum,
-                       opt.hm_lossselect, opt.epsilon_loss, opt.w, opt.gaussian_thres, opt.gaussian_sigma,opt.depth_multiplier,
-                       config.datanumber, opt.batch, opt.dataset, opt.totaljoints, opt.epoch, total_iterations,
-                       opt.lr_type, lr, opt.decay_rate,
-                       opt.require_improvement,
-                       opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss, best_validation_accuracy,
-                       config.dataset_comment,str(config.dataformat)))
+        except KeyboardInterrupt:
+            result_all.write(
+                "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
+                    format(opt.Model_folder_name, modeltype,config.modelchannel, opt.isTrain, opt.checkpoints_file, opt.offset,
+                            self.inputSize[0], config.outputSize[0], opt.optimizer, opt.epsilon,opt.momentum,
+                           opt.hm_lossselect, opt.epsilon_loss, opt.w, opt.gaussian_thres, opt.gaussian_sigma,opt.depth_multiplier,
+                           config.datanumber, opt.batch, opt.dataset, opt.totaljoints, opt.epoch, total_iterations,
+                           opt.lr_type, lr, opt.decay_rate,opt.require_improvement,
+                           opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss, best_validation_accuracy,
+                           config.dataset_comment,str(config.dataformat)))
+            result_all.close()
+        else:
+            result_all.write(
+                "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
+                    format(opt.Model_folder_name, modeltype, config.modelchannel, opt.isTrain, opt.checkpoints_file, opt.offset,
+                           self.inputSize[0], config.outputSize[0], opt.optimizer, opt.epsilon,opt.momentum,
+                           opt.hm_lossselect, opt.epsilon_loss, opt.w, opt.gaussian_thres, opt.gaussian_sigma,opt.depth_multiplier,
+                           config.datanumber, opt.batch, opt.dataset, opt.totaljoints, opt.epoch, total_iterations,
+                           opt.lr_type, lr, opt.decay_rate,opt.require_improvement,
+                           opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss, best_validation_accuracy,
+                           config.dataset_comment, str(config.dataformat)))
+            result_all.close()
