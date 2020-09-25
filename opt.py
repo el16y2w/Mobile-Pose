@@ -5,13 +5,13 @@ FLAGS = tf.app.flags.FLAGS
 
 "----------------------------- Training options -----------------------------"
 tf.app.flags.DEFINE_integer("batch", 8, "batch size")
-tf.app.flags.DEFINE_integer("epoch", 0, "Current epoch")
+tf.app.flags.DEFINE_integer("epoch", 10, "Current epoch")
 tf.app.flags.DEFINE_integer("fromStep", 1, "Initial epoch")
-tf.app.flags.DEFINE_integer("SAVE_EVERY", 50, "tensorboard save")
+tf.app.flags.DEFINE_integer("SAVE_EVERY", 1, "tensorboard save")
 tf.app.flags.DEFINE_integer("TEST_EVERY", 1, "tensorboard test")
-tf.app.flags.DEFINE_integer("VIZ_EVERY", 50, "tensorboard viz")
+tf.app.flags.DEFINE_integer("VIZ_EVERY", 1, "tensorboard viz")
 
-tf.app.flags.DEFINE_string("Model_folder_name", 'A_0', "Model_folder_name")
+tf.app.flags.DEFINE_string("Model_folder_name", 'A_1', "Model_folder_name")
 
 tf.app.flags.DEFINE_boolean("Early_stopping",False,"early stop or not")
 tf.app.flags.DEFINE_boolean('isTrain', False, 'trainable or not')
@@ -28,7 +28,7 @@ tf.app.flags.DEFINE_string("train_all_result", 'Result/trash', "model name")
 
 
 "----------------------------- Data options -----------------------------"
-tf.app.flags.DEFINE_boolean("checkanno", True,"check annotation")
+tf.app.flags.DEFINE_boolean("checkanno", False,"check annotation")
 
 tf.app.flags.DEFINE_string("dataset",'MPII_13',"choose data format:MPII_13/MPII/COCO/YOGA")
 tf.app.flags.DEFINE_integer("totaljoints", 13, "MPII16/MPII_13/COCO13/YOGA13")
@@ -43,10 +43,10 @@ tf.app.flags.DEFINE_boolean('grayimage', False, 'image type')
 
 "----------------------------- Hyperparameter options -----------------------------"
 #lr
-tf.app.flags.DEFINE_string("lr_type", "natural_exp_decay","exponential_decay|polynomial_decay|inverse_time_decay")
+tf.app.flags.DEFINE_string("lr_type", "polynomial_decay","exponential_decay|polynomial_decay|inverse_time_decay|cosine_decay")
 tf.app.flags.DEFINE_float("lr", 0.00095, "learning rate")
 tf.app.flags.DEFINE_float("decay_rate", 0.98, "learning rate decay rate")
-tf.app.flags.DEFINE_integer("decay_steps", 5000, "learning rate decay steps")
+tf.app.flags.DEFINE_integer("decay_steps", 3, "learning rate decay steps")
 
 #optimizer
 tf.app.flags.DEFINE_float("epsilon", 1e-8, "epsilon")

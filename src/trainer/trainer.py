@@ -49,8 +49,21 @@ class Trainer:
         self.updater = []
         self.sess = tf.Session(config=config) if isinstance(sess, type(None)) else sess
         self.learningRate = tf.placeholder(tf.float32, [], name='learningRate')
-        self.lr = tf.train.exponential_decay(self.learningRate, global_step=self.globalStep,
-                                   decay_steps=opt.decay_steps, decay_rate=opt.decay_rate, staircase=True)
+        if opt.lr_type == "exponential_decay":
+            self.lr = tf.train.exponential_decay(self.learningRate, global_step=self.globalStep,
+                                                decay_steps=opt.decay_steps, decay_rate=opt.decay_rate, staircase=True)
+        elif opt.lr_type == "cosine_decay":
+            self.lr = tf.train.cosine_decay(self.learningRate, global_step=self.globalStep,
+                                            decay_steps=opt.decay_steps, alpha=0.0, name=None)
+        elif opt.lr_type == "inverse_time_decay":
+            self.lr = tf.train.inverse_time_decay(self.learningRate, global_step=self.globalStep,
+                                        decay_steps=opt.decay_steps, decay_rate=opt.decay_rate, staircase=False,  name=None)
+        elif opt.lr_type == "polynomial_decay":
+            self.lr = tf.train.polynomial_decay(self.learningRate, global_step= self.globalStep, decay_steps = opt.decay_steps,
+                                      power=1.0, cycle=False, name=None)
+        else:
+            raise ValueError("Your lr_type name is wrong")
+
         if opt.optimizer == "Adam":
             self.opt = tf.train.AdamOptimizer(self.lr, epsilon=opt.epsilon)
         elif opt.optimizer == "Momentum": #use_locking: 为True时锁定更新
