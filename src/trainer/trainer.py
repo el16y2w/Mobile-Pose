@@ -402,24 +402,24 @@ class Trainer:
                         result.write(
                             "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}"
                             ",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
-                            format(modeltype,config.modelchannel, opt.isTrain, opt.checkpoints_file, opt.offset,
+                            format(modeltype,str(config.modelchannel)[1:-1], opt.isTrain, opt.checkpoints_file, opt.offset,
                                    self.inputSize[0],config.outputSize[0], opt.optimizer, opt.epsilon, opt.momentum, opt.hm_lossselect,
                                    opt.epsilon_loss,opt.w, opt.gaussian_thres, opt.gaussian_sigma,opt.depth_multiplier, config.datanumber, opt.dataset,
                                    opt.totaljoints, i, opt.lr_type, opt.decay_rate, lr,opt.require_improvement, opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss,
                                    PCK, auc_all, kps_acc[0][0], auc_head,kps_acc[1][0], auc_leftShoulder, kps_acc[2][0], auc_rightShoulder, kps_acc[3][0], auc_leftElbow,
                                    kps_acc[4][0], auc_rightElbow, kps_acc[5][0], auc_leftWrist,kps_acc[6][0], auc_rightWrist, kps_acc[7][0], auc_leftHip, kps_acc[8][0], auc_rightHip, kps_acc[9][0],
-                                   auc_leftKnee, kps_acc[10][0], auc_rightKnee,kps_acc[11][0], auc_leftAnkle, kps_acc[12][0], auc_rightAnkle, str(config.dataformat)))
+                                   auc_leftKnee, kps_acc[10][0], auc_rightKnee,kps_acc[11][0], auc_leftAnkle, kps_acc[12][0], auc_rightAnkle, str(config.dataformat)[1:-1]))
                     else:
                         result.write(
                             "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}"
                             ",{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
-                            format(modeltype,config.modelchannel, opt.isTrain, opt.checkpoints_file, opt.offset,
+                            format(modeltype,str(config.modelchannel)[1:-1], opt.isTrain, opt.checkpoints_file, opt.offset,
                                    self.inputSize[0],config.outputSize[0], opt.optimizer, opt.epsilon, opt.momentum, opt.hm_lossselect,
                                    opt.epsilon_loss,opt.w, opt.gaussian_thres, opt.gaussian_sigma,opt.depth_multiplier, config.datanumber, opt.dataset,
                                    opt.totaljoints, i, opt.decay_rate, lr, training_time, train_loss,
                                    PCK, auc_all, kps_acc[0][0], auc_head,kps_acc[1][0], auc_leftShoulder, kps_acc[2][0], auc_rightShoulder, kps_acc[3][0], auc_leftElbow,
                                    kps_acc[4][0], auc_rightElbow, kps_acc[5][0], auc_leftWrist,kps_acc[6][0], auc_rightWrist, kps_acc[7][0], auc_leftHip, kps_acc[8][0], auc_rightHip, kps_acc[9][0],
-                                   auc_leftKnee, kps_acc[10][0], auc_rightKnee,kps_acc[11][0], auc_leftAnkle, kps_acc[12][0], auc_rightAnkle, str(config.dataformat)))
+                                   auc_leftKnee, kps_acc[10][0], auc_rightKnee,kps_acc[11][0], auc_leftAnkle, kps_acc[12][0], auc_rightAnkle, str(config.dataformat)[1:-1]))
                     self.fileWriter.add_summary(summarypck, i)
                     self.fileWriter.add_summary(summaryacc, i)
 
@@ -443,22 +443,22 @@ class Trainer:
         except KeyboardInterrupt:
             result_all.write(
                 "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
-                    format(opt.Model_folder_name, modeltype,config.modelchannel, opt.isTrain, opt.checkpoints_file, opt.offset,
+                    format(opt.Model_folder_name, modeltype,str(config.modelchannel)[1:-1], opt.isTrain, opt.checkpoints_file, opt.offset,
                             self.inputSize[0], config.outputSize[0], opt.optimizer, opt.epsilon,opt.momentum,
                            opt.hm_lossselect, opt.epsilon_loss, opt.w, opt.gaussian_thres, opt.gaussian_sigma,opt.depth_multiplier,
                            config.datanumber, opt.batch, opt.dataset, opt.totaljoints, opt.epoch, total_iterations,
                            opt.lr_type, lr, opt.decay_rate,opt.require_improvement,
                            opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss, best_validation_accuracy,
-                           config.dataset_comment,str(config.dataformat)))
+                           config.dataset_comment,str(config.dataformat)[1:-1]))
             result_all.close()
         else:
             result_all.write(
                 "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
-                    format(opt.Model_folder_name, modeltype, config.modelchannel, opt.isTrain, opt.checkpoints_file, opt.offset,
+                    format(opt.Model_folder_name, modeltype, str(config.modelchannel)[1:-1], opt.isTrain, opt.checkpoints_file, opt.offset,
                            self.inputSize[0], config.outputSize[0], opt.optimizer, opt.epsilon,opt.momentum,
                            opt.hm_lossselect, opt.epsilon_loss, opt.w, opt.gaussian_thres, opt.gaussian_sigma,opt.depth_multiplier,
                            config.datanumber, opt.batch, opt.dataset, opt.totaljoints, opt.epoch, total_iterations,
                            opt.lr_type, lr, opt.decay_rate,opt.require_improvement,
                            opt.j_min, opt.j_max, opt.test_epoch, training_time, train_loss, best_validation_accuracy,
-                           config.dataset_comment, str(config.dataformat)))
+                           config.dataset_comment, str(config.dataformat)[1:-1]))
             result_all.close()
