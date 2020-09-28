@@ -361,7 +361,7 @@ class Trainer:
                     if total_iterations - last_improvement > require_improvement or j_num > opt.j_max:
                         result_all.write(
                             "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n".
-                            format(opt.Model_folder_name,config.modelchannel, modeltype, opt.isTrain, opt.checkpoints_file, opt.offset,
+                            format(opt.Model_folder_name,str(config.modelchannel)[1:-1], modeltype, opt.isTrain, opt.checkpoints_file, opt.offset,
                                     self.inputSize[0], config.outputSize[0], opt.optimizer, opt.epsilon,opt.momentum,
                                    opt.hm_lossselect, opt.epsilon_loss, opt.w, opt.gaussian_thres, opt.gaussian_sigma,opt.depth_multiplier,
                                    config.datanumber, opt.batch, opt.dataset,opt.totaljoints,opt.epoch, total_iterations, opt.lr_type, lr, opt.decay_rate,
