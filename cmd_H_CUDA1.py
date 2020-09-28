@@ -102,6 +102,9 @@ os.makedirs("Result/{}".format(opt.modeloutputFile), exist_ok=True)
 if not os.path.exists("Result/Yogapose_H/train_log.log"):
     os.mknod("Result/Yogapose_H/train_log.log")
 log = open("Result/Yogapose_H/train_log.log", "a+")
+log.write("\n")
+log.write("try different lr_type")
+log.write("\n")
 for cmd in cmds:
     log.write(cmd)
     log.write("\n")
