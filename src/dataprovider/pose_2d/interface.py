@@ -3,9 +3,9 @@ import os
 import cv2
 import numpy as np
 
-from utils.body_cover import BodyCover
-from utils.pose import Pose2D, PoseConfig
-import config
+from src.utils.body_cover import BodyCover
+from src.utils.pose import Pose2D, PoseConfig
+from opt import opt
 
 
 class Pose2DInterface:
@@ -81,7 +81,7 @@ class Pose2DInterface:
         total_joints = PoseConfig.get_total_joints()
 
         heatmap = network_out[:, :, :total_joints]
-        if config.offset == True:
+        if opt.offset == True:
             xOff = network_out[:, :, total_joints:(total_joints * 2)]
             yOff = network_out[:, :, (total_joints * 2):]
 
@@ -104,7 +104,7 @@ class Pose2DInterface:
             outX = pixId % heatmap.shape[1]
             outY = pixId // heatmap.shape[1]
 
-            if config.offset == True:
+            if opt.offset == True:
                 x = outX / heatmap.shape[1] * input_size + xOff[outY, outX, jointId]
                 y = outY / heatmap.shape[0] * input_size + yOff[outY, outX, jointId]
             else:

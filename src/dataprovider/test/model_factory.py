@@ -1,7 +1,8 @@
 import tensorflow as tf
-from dataprovider.pose_2d.interface import Pose2DInterface
-from dataprovider.object_detection.interface import YoloInterface
-import config
+from src.dataprovider.pose_2d.interface import Pose2DInterface
+from src.dataprovider.object_detection.interface import YoloInterface
+from Config import config_cmd
+from opt import opt
 
 """
 Provide an instantiated model interface containing a method "predict" used for the inference.
@@ -18,9 +19,9 @@ class ModelFactory:
 
         conf_thresh, nms_thresh = 0.25, 0.1
 
-	    # default : yolo_tiny_single_class | also platinium-tiny (30% padding)
-        config_file = "dataprovider/object_detection/tiny/yolo-voc.cfg"
-        model_parameters = "dataprovider/object_detection/tiny/final.weights"
+        # default : yolo_tiny_single_class | also platinium-tiny (30% padding)
+        config_file = "src/dataprovider/object_detection/tiny/yolo-voc.cfg"
+        model_parameters = "src/dataprovider/object_detection/tiny/final.weights"
 
         return YoloInterface(config_file, model_parameters, conf_thresh, nms_thresh)
 
@@ -29,8 +30,8 @@ class ModelFactory:
     Build the 2 dimensional pose model
     """
     @staticmethod
-    def build_pose_2d_interface(model = config.testmodel,inputsize = config.modelinputseze[0],inputnode =config.input_node_name,
-                                outputnode = config.output_node_name ):
+    def build_pose_2d_interface(model = opt.testmodel,inputsize = opt.modelinputsize,inputnode =opt.input_node_name,
+                                outputnode = opt.output_node_name ):
 
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True

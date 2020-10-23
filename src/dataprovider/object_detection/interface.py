@@ -1,6 +1,6 @@
 import cv2
 
-from utils.bbox import BBox
+from src.utils.bbox import BBox
 from .darknet import Darknet
 from torch.autograd import Variable
 from .cfg import parse_cfg

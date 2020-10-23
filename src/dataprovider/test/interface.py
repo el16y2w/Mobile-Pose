@@ -4,9 +4,9 @@ import threading
 import time
 import numpy as np
 
-from dataprovider.test.identity_tracker import IdentityTracker
-from dataprovider.test.model_factory import ModelFactory
-from utils.pose import PoseConfig, Pose2D
+from src.dataprovider.test.identity_tracker import IdentityTracker
+from src.dataprovider.test.model_factory import ModelFactory
+from src.utils.pose import PoseConfig, Pose2D
 
 
 class AnnotatorInterface:

@@ -18,8 +18,8 @@ tf.app.flags.DEFINE_boolean('isTrain', False, 'trainable or not')
 tf.app.flags.DEFINE_boolean('isTrainpre',False,'if pre train,set false')
 tf.app.flags.DEFINE_boolean('offset', True, 'offset')
 
-tf.app.flags.DEFINE_string("backbone", 'mobilenetv2', "backbone:mobilenetv1/mobilenetv2"
-                                                      "/mobilenetv3/hourglass/efficientnet")
+tf.app.flags.DEFINE_string("backbone", 'resnet18', "backbone:mobilenetv1/mobilenetv2"
+                                                      "/mobilenetv3/hourglass/efficientnet/resnet18")
 tf.app.flags.DEFINE_string("modeloutputFile", 'trash', "model output dir")
 tf.app.flags.DEFINE_string("checkpoints_file", None, " checkpoints file")
 tf.app.flags.DEFINE_string("checkpoinsaveDir", 'trash', " checkpoints save dir")

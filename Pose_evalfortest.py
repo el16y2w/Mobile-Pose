@@ -79,7 +79,7 @@ class poseevalpckh:
 
         use_times = []
         for img_id in images_anno:
-            ori_img = cv2.imread(os.path.join('/media/hkuit104/MB155_4/PoseEstimation/poseval', img_id))
+            ori_img = cv2.imread(os.path.join('/media/hkuit104/24d4ed16-ee67-4121-8359-66a09cede5e7/SAIL-Pose/poseval', img_id))
             ori_shape = ori_img.shape
             shape = shape
             inp_img = cv2.resize(ori_img, (shape[0], shape[1]))
