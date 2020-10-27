@@ -1,12 +1,11 @@
 from datetime import time
 import cv2
-from dataprovider.test.interface import AnnotatorInterface
-from utils.drawer import Drawer
+from src.dataprovider.test.interface import AnnotatorInterface
+from src.utils.drawer import Drawer
 import time
 import os
 import json
-import config
-
+from opt import opt
 
 
 """
@@ -58,8 +57,8 @@ def start_video(movie_path, max_persons):
 
 class image_detection:
     def __init__(self,src_folder,dest_folder, max_persons):
-        self.model = config.testmodel
-        self.inputsize = config.modelinputseze[0]
+        self.model = opt.testmodel
+        self.inputsize = opt.modelinputsize
         self.src_img_ls = [os.path.join(src_folder, img_name) for img_name in os.listdir(src_folder)]
         self.dest_img_ls = [os.path.join(dest_folder, img_name) for img_name in os.listdir(src_folder)]
         self.annotator = AnnotatorInterface.build(self.model,self.inputsize,max_persons=max_persons)

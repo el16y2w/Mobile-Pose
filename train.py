@@ -20,7 +20,7 @@ class run:
 
 
     def train(self):
-        self.tp.train_fastpose( self.trainornot, self.checkpoint, self.model,
+        self.tp.train_pose( self.trainornot, self.checkpoint, self.model,
                         opt.epoch, opt.lr, time_str, self.inputSize,self.outputSize,
                                 config.inputshape)
 

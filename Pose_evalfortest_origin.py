@@ -1,4 +1,4 @@
-from src.utils.drawer import Drawer
+import tensorflow as tf
 import numpy as np
 import json
 import cv2
@@ -13,7 +13,6 @@ class poseevalpckh:
     def __init__(self):
         self.anno = json.load(open(opt.Groundtru_annojson))
         self.testimg_path = opt.testing_path
-        self.distance = []
 
     def eval(self,modelpath,inputsize):
         print("Total test example=%d" % len(self.anno['images']))
@@ -58,17 +57,13 @@ class poseevalpckh:
                     gt_x, gt_y = groundtruth_anno[index]
 
                     d = math.sqrt((pred_x - gt_x) ** 2 + (pred_y - gt_y) ** 2)
-                    self.distance.append([d])
-                match = np.array(self.distance) <= threshold
-                pck = 1.0 * np.sum(match, axis=0) / len(self.distance)
-                    # if d >= threshold:
-                    #     curr_score.append(0)
-                    # else:
-                    #     curr_score.append(1)
-                # scores.append(np.mean(curr_score))
-                scores.append(pck)
+                    if d > threshold:
+                        curr_score.append(0)
+                    else:
+                        curr_score.append(1)
+                scores.append(np.mean(curr_score))
 
-        print("PCKh=%.2f" % (np.sum(np.array(scores)) / len(scores)*100))
+        print("PCKh=%.2f" % (np.mean(scores) * 100))
         return use_times, "PCKh=%.2f" % (np.mean(scores) * 100)
 
 
@@ -82,12 +77,10 @@ class poseevalpckh:
             ori_shape = ori_img.shape
             shape = shape
             inp_img = cv2.resize(ori_img, (shape[0], shape[1]))
-            # inp_img = cv2.cvtColor(inp_img, cv2.COLOR_RGB2GRAY)
-            # inp_img = cv2.cvtColor(inp_img, cv2.COLOR_GRAY2RGB)
-            inp_img = cv2.cvtColor(inp_img, cv2.COLOR_BGR2RGB)
+            inp_img = cv2.cvtColor(inp_img, cv2.COLOR_RGB2GRAY)
+            inp_img = cv2.cvtColor(inp_img, cv2.COLOR_GRAY2RGB)
             st = time.time()
             persons = annotator.update(inp_img)#{'id': person_id,'bbox':None,'pose_2d':None,'pose_3d':None,'confidence':np.array([0.25 for _ in range(PoseConfig.get_total_joints())]),'hash':self.person_hash_provider}
-            infer_time = 1000 * (time.time() - st)
             #print(persons)
             for p in persons:
                 pose = p['pose_2d'].get_joints()
@@ -95,11 +88,7 @@ class poseevalpckh:
                 pose[:, 1] = (pose[:, 1]* ori_shape[0])
                 #bbox = [p['bbox'].get_min_x(inp_img), p['bbox'].get_min_y(inp_img), p['bbox'].get_max_x(inp_img), p['bbox'].get_max_y(inp_img)]
                 res[img_id] = pose
-            poses = [p['pose_2d'] for p in persons]
-            ids = [p['id'] for p in persons]
-            frame, key_points = Drawer.draw_scene(ori_img, poses, ids, None, None)
-            cv2.imshow('frame', frame)
-            cv2.waitKey(0)
+            infer_time = 1000 * (time.time() - st)
             print("img_id = %s, cost_time = %.2f ms" % (img_id, infer_time))
             use_times.append(infer_time)
         print("Average inference time = %.2f ms" % np.mean(use_times))

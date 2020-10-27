@@ -39,6 +39,10 @@ classes_tensor_name = ["Output"]
 converter = tf.compat.v1.lite.TFLiteConverter.from_frozen_graph(in_path, input_tensor_name, classes_tensor_name, input_shapes=input_tensor_shape)
 
 #converter.post_training_quantize = True
+converter.optimizations = [tf.lite.Optimize.DEFAULT]
+converter.target_spec.supported_types = [tf.lite.constants.FLOAT16]
+
+
 tflite_model = converter.convert()
 
 with open(out_path, "wb") as f:

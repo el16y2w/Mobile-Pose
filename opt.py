@@ -18,7 +18,7 @@ tf.app.flags.DEFINE_boolean('isTrain', False, 'trainable or not')
 tf.app.flags.DEFINE_boolean('isTrainpre',False,'if pre train,set false')
 tf.app.flags.DEFINE_boolean('offset', True, 'offset')
 
-tf.app.flags.DEFINE_string("backbone", 'resnet18', "backbone:mobilenetv1/mobilenetv2"
+tf.app.flags.DEFINE_string("backbone", 'mobilenetv2', "backbone:mobilenetv1/mobilenetv2"
                                                       "/mobilenetv3/hourglass/efficientnet/resnet18")
 tf.app.flags.DEFINE_string("modeloutputFile", 'trash', "model output dir")
 tf.app.flags.DEFINE_string("checkpoints_file", None, " checkpoints file")
@@ -87,7 +87,7 @@ tf.app.flags.DEFINE_string("resultpath", './poseval/results/', "result output pa
 
 
 "----------------------------- Realtime testing options -----------------------------"
-tf.app.flags.DEFINE_string("testmodel", "mobilnetv2False2020-05-11-12-17-45.pb", "testmodel")
+tf.app.flags.DEFINE_string("testmodel", "mobilenetv2False2020-09-22-09-45-20.pb", "testmodel")
 tf.app.flags.DEFINE_string("input_node_name", "Image:0", "input_node_name")
 tf.app.flags.DEFINE_string("output_node_name", "Output:0", "output_node_name")
 tf.app.flags.DEFINE_integer("modelinputsize", 224, "Input image")

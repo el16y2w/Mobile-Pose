@@ -115,6 +115,7 @@ class Trainer:
         self.sess.run(self.learningRate, feed_dict={self.learningRate: lr})
 
     def _buildLoss(self, heatmapGT, outputStages, batchSize, lossFunc, lossName):
+        
         losses = []
         for idx, stage_out in enumerate(outputStages):
             loss = lossFunc(heatmapGT, stage_out, lossName + '_' + str(idx), batchSize)

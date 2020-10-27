@@ -25,12 +25,10 @@ class finallayerforoffsetoption(object):
         return self.output
 
     def fornetworks_DUC(self,output,totalJoints):
-        # output = tf.nn.depth_to_space(output, 2) #pixel shuffle
-        # output = self.lProvider.convb(output,3,3,160,1,"psconv1",relu=True)
-        # output = tf.nn.depth_to_space(output, 2)
-        # output = self.lProvider.convb(output, 3, 3, 52, 1, "psconv2", relu=True)
-        # output = tf.nn.depth_to_space(output, 2)
-        output = tf.nn.depth_to_space(output, 2) # pixel shuffle
+        if opt.backbone == "resnet18":
+            pass
+        else:
+            output = tf.nn.depth_to_space(output, 2) # pixel shuffle
         for i in range(len(self.pixel)):
             if opt.totaljoints == 13:
                 output = self.lProvider.convb(output, self.conv[i][0], self.conv[i][1], self.conv[i][2], self.conv[i][3],
