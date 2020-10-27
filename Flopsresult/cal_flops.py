@@ -1,7 +1,7 @@
 import tensorflow as tf
 import os
 from tensorflow.python.tools import freeze_graph
-from src.training.pose_2d.train import LayerProvider
+from src.models.Layerprovider import LayerProvider
 class PoseNet():
 
     def __init__(self, is4Train=True, mobilenetVersion=0.75, totalJoints=13):

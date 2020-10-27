@@ -9,6 +9,7 @@ from src.models.efficientnetlite0 import EfficientNetLite0
 from src.models.efficientnetlite1 import EfficientNetLite1
 from src.models.senet import Senetget
 from src.models.shufflenet import Shufflenetget
+from src.models.resnet18 import ResNet
 from src.dataprovider.Gaudataprovider import GauDataProviderAdaptator
 from opt import opt
 import os
@@ -21,11 +22,11 @@ class buildPoseNet(object):
         self.offsetset = opt.offset
         self.modelDir = opt.checkpoinsaveDir
         self.dataformat = config.dataformat
+        self.config_list = [{'sparsity': 0.8, 'op_types': ['default']}]
 
 
     def build(self,dataTrainProvider,dataValProvider, time, inputsize, inputshape, checkpointFile, is4Train
               , model_type):
-
 
         if model_type == "hourglass":
             model = HourGlassNet(is4Train=is4Train)
@@ -47,6 +48,7 @@ class buildPoseNet(object):
         else:
             if model_type == "mobilenetv1":
                 model = PoseNet(inputshape,is4Train=is4Train)
+
             elif model_type == "mobilenetv3":
                 model = PoseNetv3(inputshape,is4Train=is4Train)
             elif model_type == "efficientnet0":
@@ -59,6 +61,8 @@ class buildPoseNet(object):
                 model = Shufflenetget(inputshape)
             elif model_type == "mobilenetv2":
                 model = PoseNetv2(inputshape,is4Train=is4Train)
+            elif model_type == "resnet18":
+                model = ResNet(inputshape,is4Train=is4Train)
             else:
                 print("wrong model")
 
@@ -81,7 +85,6 @@ class buildPoseNet(object):
 
 
 
-
 class train_pose(object):
     def __init__(self):
         self.bP =buildPoseNet()
@@ -94,6 +97,7 @@ class train_pose(object):
         self.testimg = config.dataprovider_testimg
         self.dataTrainProvider = []
         self.datavalProvider = []
+
 
     def dataprovider(self,inputSize,outputSize):
         self.dataTrainProvider = []
@@ -109,8 +113,7 @@ class train_pose(object):
         return self.dataTrainProvider,self.datavalProvider
 
 
-
-    def train_fastpose(self, isTrain, checkpoints,
+    def train_pose(self, isTrain, checkpoints,
                        model, epochs, lrs, time_str, inputsize, outputsize, inputshape):
 
         dataTrainProvider, dataValProvider = self.dataprovider(inputsize,outputsize)
@@ -126,7 +129,6 @@ class train_pose(object):
                 self.export(posenet, outputFile= exp_dir+"/"+model + str(isTrain)+time_str + ".pb")
             else:
                 self.export(posenet, outputFile=exp_dir+"/"+model + str(isTrain) + time_str + ".pb")
-
 
 
     def export(self,trainer, outputFile, outputName="Output"):
