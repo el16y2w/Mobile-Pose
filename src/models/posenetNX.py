@@ -35,16 +35,16 @@ class PoseNetNX:
             [6, 576, 4, 2],
             [6, 960, 2, 1]
         ]
-        self.bottleneck_type = 0
+        self.sandglass_type = 0
         for t, c, n, s in sand_glass_setting:
-            self.bottleneck_type += 1
+            self.sandglass_type += 1
             output_channel = adaptChannels(c)
             for i in range(n):
                 if i == 0:
                     stride = s
                 else:
                     stride = 1
-                layerDescription = "l" + str(self.bottleneck_type) + "-bottleneck-n" + str(i+1)
+                layerDescription = "l" + str(self.sandglass_type) + "-sandglass-n" + str(i+1)
                 output = lProvider.inverted_bottleneck(output, t, output_channel, stride, k_s=3, dilation=1, scope=layerDescription)
 
         # lProvider1 = LayerProvider(self.transtrain)
