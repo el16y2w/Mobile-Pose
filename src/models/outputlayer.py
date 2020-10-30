@@ -31,7 +31,12 @@ class finallayerforoffsetoption(object):
             output = tf.nn.depth_to_space(output, 2) # pixel shuffle
         for i in range(len(self.pixel)):
             if opt.totaljoints == 13:
-                output = self.lProvider.convb(output, self.conv[i][0], self.conv[i][1], self.conv[i][2], self.conv[i][3],
+                if opt.backbone == "mobilenetXT":
+                    output = self.lProvider.convb(output, 3, 3, 208, 1,
+                                          "psconv1", relu=True)
+                    output = tf.nn.depth_to_space(output, self.pixel[i])
+                else:
+                    output = self.lProvider.convb(output, self.conv[i][0], self.conv[i][1], self.conv[i][2], self.conv[i][3],
                                           self.conv[i][4], relu=True)
             elif opt.totaljoints == 16:
                 output = self.lProvider.convb(output, config.convb_16[i][0], config.convb_16[i][1], config.convb_16[i][2], config.convb_16[i][3],

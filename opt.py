@@ -5,21 +5,21 @@ FLAGS = tf.app.flags.FLAGS
 
 "----------------------------- Training options -----------------------------"
 tf.app.flags.DEFINE_integer("batch", 8, "batch size")
-tf.app.flags.DEFINE_integer("epoch", 10, "Current epoch")
+tf.app.flags.DEFINE_integer("epoch", 10000, "Current epoch")
 tf.app.flags.DEFINE_integer("fromStep", 1, "Initial epoch")
-tf.app.flags.DEFINE_integer("SAVE_EVERY", 50, "tensorboard save")
+tf.app.flags.DEFINE_integer("SAVE_EVERY", 100, "tensorboard save")
 tf.app.flags.DEFINE_integer("TEST_EVERY", 1, "tensorboard test")
-tf.app.flags.DEFINE_integer("VIZ_EVERY", 50, "tensorboard viz")
+tf.app.flags.DEFINE_integer("VIZ_EVERY", 5, "tensorboard viz")
 
 tf.app.flags.DEFINE_string("Model_folder_name", 'A_1', "Model_folder_name")
 
 tf.app.flags.DEFINE_boolean("Early_stopping",False,"early stop or not")
-tf.app.flags.DEFINE_boolean('isTrain', False, 'trainable or not')
-tf.app.flags.DEFINE_boolean('isTrainpre',False,'if pre train,set false')
+tf.app.flags.DEFINE_boolean('isTrain', True, 'trainable or not')
+tf.app.flags.DEFINE_boolean('isTrainpre',True,'if pre train,set false')
 tf.app.flags.DEFINE_boolean('offset', True, 'offset')
 
-tf.app.flags.DEFINE_string("backbone", 'mobilenetv2', "backbone:mobilenetv1/mobilenetv2"
-                                                      "/mobilenetv3/hourglass/efficientnet/resnet18")
+tf.app.flags.DEFINE_string("backbone", 'mobilenetXT', "backbone:mobilenetv1/mobilenetv2"
+                                                      "/mobilenetXT/mobilenetv3/hourglass/efficientnet/resnet18")
 tf.app.flags.DEFINE_string("modeloutputFile", 'trash', "model output dir")
 tf.app.flags.DEFINE_string("checkpoints_file", None, " checkpoints file")
 tf.app.flags.DEFINE_string("checkpoinsaveDir", 'trash', " checkpoints save dir")
@@ -43,8 +43,8 @@ tf.app.flags.DEFINE_boolean('grayimage', False, 'image type')
 
 "----------------------------- Hyperparameter options -----------------------------"
 #lr
-tf.app.flags.DEFINE_string("lr_type", "polynomial_decay","exponential_decay|polynomial_decay|inverse_time_decay|cosine_decay")
-tf.app.flags.DEFINE_float("lr", 0.00095, "learning rate")
+tf.app.flags.DEFINE_string("lr_type", "exponential_decay","exponential_decay|polynomial_decay|inverse_time_decay|cosine_decay")
+tf.app.flags.DEFINE_float("lr", 0.001, "learning rate")
 tf.app.flags.DEFINE_float("decay_rate", 0.98, "learning rate decay rate")
 tf.app.flags.DEFINE_integer("decay_steps", 5000, "learning rate decay steps")
 

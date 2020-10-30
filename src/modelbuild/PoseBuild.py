@@ -11,6 +11,7 @@ from src.models.senet import Senetget
 from src.models.shufflenet import Shufflenetget
 from src.models.resnet18 import ResNet
 from src.dataprovider.Gaudataprovider import GauDataProviderAdaptator
+from src.models.posenetNX import PoseNetNX
 from opt import opt
 import os
 
@@ -63,6 +64,8 @@ class buildPoseNet(object):
                 model = PoseNetv2(inputshape,is4Train=is4Train)
             elif model_type == "resnet18":
                 model = ResNet(inputshape,is4Train=is4Train)
+            elif model_type == "mobilenetXT":
+                model = PoseNetNX(inputshape, is4Train=is4Train)
             else:
                 print("wrong model")
 
